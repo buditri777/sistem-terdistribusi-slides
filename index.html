@@ -7,13 +7,1065 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <style>
+/* ===== Variables ===== */
+:root {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --primary-light: #818cf8;
+    --accent-pink: #ec4899;
+    --accent-cyan: #06b6d4;
+    --accent-amber: #f59e0b;
+    --accent-emerald: #10b981;
+    --accent-violet: #8b5cf6;
+    --accent-rose: #f43f5e;
+    --accent-orange: #f97316;
+
+    --bg: #ffffff;
+    --bg-soft: #fafbff;
+    --bg-card: #ffffff;
+    --bg-card-soft: #f5f3ff;
+    --text: #1e293b;
+    --text-muted: #475569;
+    --text-dim: #94a3b8;
+    --border: #e2e8f0;
+    --border-strong: #cbd5e1;
+
+    --grad-blue: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    --grad-pink: linear-gradient(135deg, #ec4899 0%, #f97316 100%);
+    --grad-cyan: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+    --grad-emerald: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+    --grad-sunset: linear-gradient(135deg, #f97316 0%, #ec4899 50%, #8b5cf6 100%);
+    --grad-rainbow: linear-gradient(135deg, #ec4899 0%, #8b5cf6 25%, #6366f1 50%, #06b6d4 75%, #10b981 100%);
+
+    --radius: 20px;
+    --radius-sm: 12px;
+    --shadow-sm: 0 2px 8px rgba(99,102,241,.08), 0 1px 3px rgba(99,102,241,.06);
+    --shadow: 0 8px 24px rgba(99,102,241,.12), 0 4px 8px rgba(99,102,241,.08);
+    --shadow-lg: 0 24px 48px rgba(99,102,241,.18), 0 12px 24px rgba(99,102,241,.10);
+    --shadow-color: 0 12px 32px rgba(236,72,153,.20);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== Reset ===== */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: linear-gradient(160deg, #f5f3ff 0%, #fce7f3 30%, #ecfeff 60%, #f0fdf4 100%);
+    color: var(--text);
+    overflow: hidden;
+}
+
+body {
+    line-height: 1.55;
+    font-size: 17px;
+}
+
+/* ===== Presentation Container ===== */
+.presentation {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* ===== Slide ===== */
+.slide {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(160deg, #f5f3ff 0%, #fce7f3 30%, #ecfeff 60%, #f0fdf4 100%);
+    padding: 64px 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease, visibility 0.4s;
+    overflow-y: auto;
+}
+
+/* First slide visible by default before JS loads */
+.slide:first-of-type {
+    opacity: 1;
+    visibility: visible;
+}
+
+.slide.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.slide-content {
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+/* ===== Cover Slides ===== */
+.slide.cover {
+    background: var(--grad-rainbow);
+    color: white;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.slide.cover::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(255,255,255,.10) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.slide.cover .slide-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.badge {
+    display: inline-block;
+    padding: 10px 24px;
+    background: rgba(255,255,255,.2);
+    border: 2px solid rgba(255,255,255,.4);
+    border-radius: 999px;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    backdrop-filter: blur(10px);
+}
+
+.cover-title {
+    font-size: 5.5rem;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    color: white;
+    text-shadow: 0 4px 24px rgba(0,0,0,.25);
+}
+
+.cover-subtitle {
+    font-size: 2rem;
+    font-weight: 600;
+    color: rgba(255,255,255,.95);
+    max-width: 900px;
+    line-height: 1.3;
+}
+
+.cover-meta {
+    color: rgba(255,255,255,.85);
+    font-size: 1.25rem;
+    margin-top: 12px;
+    font-weight: 500;
+}
+
+.cover-footer {
+    margin-top: 56px;
+    display: flex;
+    gap: 64px;
+}
+
+.cover-footer .label {
+    display: block;
+    font-size: 0.9rem;
+    color: rgba(255,255,255,.7);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 6px;
+}
+
+.cover-footer .value {
+    display: block;
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+/* ===== Section Divider ===== */
+.section-divider {
+    color: white;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.section-divider::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.15) 0%, transparent 50%);
+}
+
+.section-divider .slide-content {
+    position: relative;
+    z-index: 1;
+}
+
+.section-divider.blue {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+}
+
+.section-divider.green {
+    background: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%);
+}
+
+.chapter-big {
+    display: inline-block;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    padding: 12px 28px;
+    background: rgba(255,255,255,.2);
+    border: 2px solid rgba(255,255,255,.4);
+    border-radius: 999px;
+    margin-bottom: 32px;
+    backdrop-filter: blur(10px);
+}
+
+.divider-title {
+    font-size: 4.8rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 20px;
+    text-shadow: 0 4px 24px rgba(0,0,0,.15);
+}
+
+.divider-sub {
+    font-size: 1.6rem;
+    color: rgba(255,255,255,.95);
+    font-weight: 500;
+}
+
+/* ===== Typography ===== */
+.chapter {
+    display: inline-block;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: white;
+    background: var(--grad-blue);
+    padding: 8px 18px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-sm);
+}
+
+.slide h1 {
+    font-size: 3.2rem;
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -1.5px;
+    margin-bottom: 28px;
+    background: var(--grad-blue);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.slide h3 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--text);
+}
+
+.lead {
+    font-size: 1.4rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+    margin-bottom: 32px;
+    max-width: 1080px;
+    font-weight: 400;
+}
+
+.lead b {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.caption {
+    font-size: 1rem;
+    color: var(--text-dim);
+    font-style: italic;
+    margin-top: 14px;
+    text-align: center;
+}
+
+.mt {
+    margin-top: 32px;
+}
+
+/* ===== Lists ===== */
+.check-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.check-list li {
+    position: relative;
+    padding-left: 44px;
+    font-size: 1.2rem;
+    color: var(--text);
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+.check-list li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    top: 2px;
+    width: 30px;
+    height: 30px;
+    background: var(--grad-emerald);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 800;
+    box-shadow: 0 4px 12px rgba(16,185,129,.3);
+}
+
+/* ===== Cards ===== */
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.card {
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--grad-blue);
+    opacity: 0.6;
+}
+
+.card:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow);
+    transform: translateY(-3px);
+}
+
+.card.sm {
+    padding: 22px;
+}
+
+.card.highlight {
+    background: linear-gradient(135deg, #f5f3ff 0%, #fce7f3 50%, #fef3c7 100%);
+    border-color: #c7d2fe;
+}
+
+.card.highlight::before {
+    background: var(--grad-sunset);
+    opacity: 1;
+}
+
+.card.danger {
+    background: linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%);
+    border-color: #fca5a5;
+}
+
+.card.danger::before {
+    background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+    opacity: 1;
+}
+
+.card.success {
+    background: linear-gradient(135deg, #f0fdf4 0%, #ecfeff 100%);
+    border-color: #86efac;
+}
+
+.card.success::before {
+    background: var(--grad-emerald);
+    opacity: 1;
+}
+
+.card-icon {
+    width: 64px;
+    height: 64px;
+    background: var(--grad-blue);
+    color: white;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.8rem;
+    margin-bottom: 18px;
+    box-shadow: 0 8px 16px rgba(99,102,241,.3);
+}
+
+.card.highlight:nth-of-type(2) .card-icon {
+    background: var(--grad-pink);
+    box-shadow: 0 8px 16px rgba(236,72,153,.3);
+}
+
+.card-emoji {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+}
+
+.card-sub {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    font-weight: 500;
+}
+
+.card ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.card ul li {
+    position: relative;
+    padding-left: 22px;
+    margin-bottom: 8px;
+    font-size: 1.05rem;
+    color: var(--text-muted);
+}
+
+.card ul li::before {
+    content: "▸";
+    position: absolute;
+    left: 0;
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.card p {
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.card.sm p {
+    font-size: 1rem;
+}
+
+/* Different gradient accents per card position in grid-3 */
+.grid-3 .card:nth-of-type(1)::before { background: linear-gradient(135deg, #6366f1, #8b5cf6); opacity: 1; }
+.grid-3 .card:nth-of-type(2)::before { background: linear-gradient(135deg, #ec4899, #f43f5e); opacity: 1; }
+.grid-3 .card:nth-of-type(3)::before { background: linear-gradient(135deg, #06b6d4, #3b82f6); opacity: 1; }
+.grid-3 .card:nth-of-type(4)::before { background: linear-gradient(135deg, #f59e0b, #f97316); opacity: 1; }
+.grid-3 .card:nth-of-type(5)::before { background: linear-gradient(135deg, #10b981, #06b6d4); opacity: 1; }
+.grid-3 .card:nth-of-type(6)::before { background: linear-gradient(135deg, #8b5cf6, #ec4899); opacity: 1; }
+
+.grid-2 .card.sm:nth-of-type(odd)::before { background: var(--grad-blue); opacity: 1; }
+.grid-2 .card.sm:nth-of-type(even)::before { background: var(--grad-pink); opacity: 1; }
+
+/* ===== Pills ===== */
+.pill-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.pill {
+    display: inline-block;
+    padding: 8px 18px;
+    background: white;
+    color: var(--primary);
+    border: 2px solid var(--primary);
+    border-radius: 999px;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.pill:hover {
+    background: var(--grad-blue);
+    color: white;
+    border-color: transparent;
+    transform: translateY(-2px);
+}
+
+.pill-grid .pill:nth-child(2) { color: var(--accent-pink); border-color: var(--accent-pink); }
+.pill-grid .pill:nth-child(2):hover { background: var(--grad-pink); }
+.pill-grid .pill:nth-child(3) { color: var(--accent-cyan); border-color: var(--accent-cyan); }
+.pill-grid .pill:nth-child(3):hover { background: var(--grad-cyan); }
+.pill-grid .pill:nth-child(4) { color: var(--accent-amber); border-color: var(--accent-amber); }
+.pill-grid .pill:nth-child(4):hover { background: linear-gradient(135deg, #f59e0b, #f97316); color: white; }
+.pill-grid .pill:nth-child(5) { color: var(--accent-emerald); border-color: var(--accent-emerald); }
+.pill-grid .pill:nth-child(5):hover { background: var(--grad-emerald); }
+.pill-grid .pill:nth-child(6) { color: var(--accent-violet); border-color: var(--accent-violet); }
+.pill-grid .pill:nth-child(6):hover { background: linear-gradient(135deg, #8b5cf6, #ec4899); color: white; }
+
+/* ===== Diagrams ===== */
+.diagram-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 32px 20px;
+    background: linear-gradient(135deg, #f5f3ff 0%, #fce7f3 100%);
+    border: 2px solid #e0e7ff;
+    border-radius: var(--radius);
+    margin: 20px 0;
+    flex-wrap: wrap;
+    box-shadow: var(--shadow-sm);
+}
+
+.node {
+    padding: 18px 24px;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    min-width: 150px;
+    transition: var(--transition);
+}
+
+.node:hover {
+    transform: scale(1.05);
+    box-shadow: var(--shadow);
+}
+
+.node small {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-top: 4px;
+    opacity: 0.85;
+}
+
+.node.client {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    color: #1e40af;
+    border: 2px solid #60a5fa;
+}
+
+.node.middleware {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #92400e;
+    border: 2px solid #f59e0b;
+}
+
+.node.service {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    color: #047857;
+    border: 2px solid #34d399;
+}
+
+.node.db {
+    background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+    color: #6b21a8;
+    border: 2px solid #c084fc;
+}
+
+.node-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.arrow {
+    font-size: 2rem;
+    background: var(--grad-blue);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 800;
+}
+
+/* Architecture Diagram (vertical) */
+.arch-diagram {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 28px;
+    background: linear-gradient(135deg, #f5f3ff 0%, #ecfeff 100%);
+    border-radius: var(--radius);
+    border: 2px solid #c7d2fe;
+}
+
+.arch-row {
+    display: flex;
+    gap: 14px;
+}
+
+.arch-row.multi {
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.arch-arrow {
+    font-size: 1.8rem;
+    background: var(--grad-blue);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 800;
+}
+
+/* ===== Steps ===== */
+.steps-box {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin: 20px 0;
+}
+
+.steps-box.compact {
+    gap: 12px;
+}
+
+.step {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 18px 22px;
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+
+.step:hover {
+    border-color: var(--primary);
+    transform: translateX(4px);
+}
+
+.step-num {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--grad-blue);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.1rem;
+    box-shadow: 0 6px 12px rgba(99,102,241,.3);
+}
+
+.step-num.green { background: var(--grad-emerald); box-shadow: 0 6px 12px rgba(16,185,129,.3); }
+.step-num.yellow { background: linear-gradient(135deg, #f59e0b, #f97316); box-shadow: 0 6px 12px rgba(245,158,11,.3); }
+.step-num.red { background: linear-gradient(135deg, #ef4444, #ec4899); box-shadow: 0 6px 12px rgba(239,68,68,.3); }
+
+.step-text {
+    color: var(--text);
+    font-size: 1.15rem;
+    font-weight: 500;
+}
+
+/* ===== Chain Diagram ===== */
+.chain-diagram {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin: 28px 0;
+    flex-wrap: wrap;
+}
+
+.chain-item {
+    flex: 1 1 220px;
+    max-width: 270px;
+    padding: 28px 22px;
+    border-radius: var(--radius);
+    text-align: center;
+    border: 2px solid;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+
+.chain-item:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow);
+}
+
+.chain-item h3 {
+    font-size: 1.6rem;
+    margin-bottom: 10px;
+}
+
+.chain-item p {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.chain-item small {
+    display: block;
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    margin-top: 6px;
+    font-style: italic;
+}
+
+.chain-item.fault {
+    background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+    border-color: #f59e0b;
+    color: #92400e;
+}
+
+.chain-item.error {
+    background: linear-gradient(135deg, #fee2e2 0%, #fce7f3 100%);
+    border-color: #f87171;
+    color: #b91c1c;
+}
+
+.chain-item.failure {
+    background: linear-gradient(135deg, #fecaca 0%, #fbcfe8 100%);
+    border-color: #ef4444;
+    color: #991b1b;
+}
+
+.chain-arrow {
+    font-size: 2.5rem;
+    background: var(--grad-sunset);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 800;
+}
+
+/* ===== Tables ===== */
+.slide-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    font-size: 1.1rem;
+}
+
+.slide-table thead th {
+    background: var(--grad-blue);
+    color: white;
+    padding: 18px 22px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 0.3px;
+}
+
+.slide-table tbody td {
+    padding: 16px 22px;
+    border-top: 1px solid var(--border);
+    font-size: 1.05rem;
+    color: var(--text);
+}
+
+.slide-table tbody tr:nth-child(odd) {
+    background: #fafbff;
+}
+
+.slide-table tbody tr:hover {
+    background: linear-gradient(135deg, #f5f3ff 0%, #fce7f3 100%);
+}
+
+.slide-table tbody td b {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+/* ===== Quote Box ===== */
+.quote-box {
+    background: var(--grad-rainbow);
+    padding: 4px;
+    border-radius: var(--radius);
+    margin: 24px 0;
+    box-shadow: var(--shadow);
+}
+
+.quote-box p {
+    background: white;
+    padding: 24px 32px;
+    border-radius: calc(var(--radius) - 4px);
+    font-size: 1.35rem;
+    font-style: italic;
+    color: var(--text);
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+.quote-box p b {
+    background: var(--grad-blue);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 800;
+    font-style: normal;
+}
+
+/* ===== Navigation Controls ===== */
+.nav-controls {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    background: white;
+    backdrop-filter: blur(8px);
+    padding: 10px 20px;
+    border-radius: 999px;
+    box-shadow: var(--shadow-lg);
+    border: 2px solid var(--border);
+    z-index: 100;
+}
+
+.nav-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: var(--grad-blue);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 1.6rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    box-shadow: 0 4px 12px rgba(99,102,241,.3);
+}
+
+.nav-btn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 16px rgba(99,102,241,.5);
+}
+
+.nav-btn:disabled {
+    background: var(--text-dim);
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.slide-counter {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+    min-width: 80px;
+    text-align: center;
+}
+
+/* ===== Hint ===== */
+.hint {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    background: white;
+    backdrop-filter: blur(8px);
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    border: 2px solid var(--border);
+    z-index: 99;
+    font-weight: 500;
+}
+
+.hint span {
+    background: linear-gradient(135deg, #f5f3ff 0%, #fce7f3 100%);
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 1px solid #c7d2fe;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 0 3px;
+    font-size: 0.85rem;
+}
+
+/* ===== Overview Grid ===== */
+.overview-grid {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,.94);
+    z-index: 200;
+    padding: 48px;
+    overflow-y: auto;
+    display: none;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 18px;
+    align-content: start;
+}
+
+.overview-grid.active {
+    display: grid;
+}
+
+.overview-thumb {
+    background: white;
+    border-radius: var(--radius-sm);
+    padding: 20px;
+    cursor: pointer;
+    aspect-ratio: 16/9;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    transition: var(--transition);
+    position: relative;
+    box-shadow: var(--shadow);
+}
+
+.overview-thumb::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--grad-rainbow);
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+.overview-thumb:hover {
+    transform: scale(1.06);
+    box-shadow: var(--shadow-lg);
+}
+
+.overview-thumb-num {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: var(--grad-blue);
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 800;
+    box-shadow: 0 4px 8px rgba(99,102,241,.3);
+}
+
+.overview-thumb-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+/* ===== Print / PDF ===== */
+@media print {
+    @page {
+        size: 1280px 720px;
+        margin: 0;
+    }
+
+    html, body {
+        overflow: visible !important;
+        height: auto !important;
+    }
+
+    .presentation {
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    .slide {
+        position: relative !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        page-break-after: always;
+        height: 720px !important;
+        width: 1280px !important;
+        inset: auto !important;
+    }
+
+    .nav-controls, .hint, .overview-grid {
+        display: none !important;
+    }
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 900px) {
+    .slide {
+        padding: 32px 24px;
+    }
+
+    body { font-size: 15px; }
+
+    .cover-title { font-size: 3.2rem; }
+    .divider-title { font-size: 2.8rem; }
+    .slide h1 { font-size: 2.2rem; }
+    .lead { font-size: 1.15rem; }
+    .check-list li { font-size: 1.05rem; }
+
+    .grid-2, .grid-3 {
+        grid-template-columns: 1fr;
+    }
+
+    .diagram-box {
+        flex-direction: column;
+    }
+
+    .arrow { transform: rotate(90deg); }
+
+    .chain-diagram { flex-direction: column; }
+    .chain-arrow { transform: rotate(90deg); }
+
+    .cover-footer { flex-direction: column; gap: 18px; }
+
+    .slide-table { font-size: 0.9rem; }
+    .slide-table thead th, .slide-table tbody td { padding: 10px 12px; }
+}
+
+    </style>
 </head>
 <body>
     <div class="presentation" id="presentation">
 
         <!-- =========== COVER =========== -->
-        <section class="slide cover" data-title="Cover">
+        <section class="slide cover active" data-title="Cover">
             <div class="slide-content">
                 <div class="badge">Mata Kuliah</div>
                 <h1 class="cover-title">Sistem Terdistribusi</h1>
@@ -498,3 +1550,309 @@
                         <div class="steps-box compact">
                             <div class="step">
                                 <div class="step-num green">🟢</div>
+                                <div class="step-text"><b>Closed</b> — request normal</div>
+                            </div>
+                            <div class="step">
+                                <div class="step-num yellow">🟡</div>
+                                <div class="step-text"><b>Half-Open</b> — coba kirim sedikit</div>
+                            </div>
+                            <div class="step">
+                                <div class="step-num red">🔴</div>
+                                <div class="step-text"><b>Open</b> — stop request, return fallback</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== STUDI KASUS MOBILE BANKING =========== -->
+        <section class="slide" data-title="Studi Kasus Banking">
+            <div class="slide-content">
+                <span class="chapter">P9 · H</span>
+                <h1>Studi Kasus: Mobile Banking</h1>
+                <p class="lead">Mobile banking harus sangat reliable — berhubungan dengan uang dan transaksi.</p>
+                <div class="grid-2">
+                    <div class="card danger">
+                        <h3>⚠️ Risiko</h3>
+                        <ul>
+                            <li>Transaksi gagal</li>
+                            <li>Saldo tidak update</li>
+                            <li>Pembayaran ganda</li>
+                            <li>Server overload</li>
+                            <li>Response lambat</li>
+                        </ul>
+                    </div>
+                    <div class="card success">
+                        <h3>✅ Strategi FT</h3>
+                        <ul>
+                            <li>Redundancy server</li>
+                            <li>Database replication</li>
+                            <li>Idempotent retry</li>
+                            <li>Circuit breaker</li>
+                            <li>Graceful degradation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== STUDI KASUS FLASH SALE =========== -->
+        <section class="slide" data-title="Flash Sale">
+            <div class="slide-content">
+                <span class="chapter">P9 · I</span>
+                <h1>Studi Kasus: E-Commerce Flash Sale</h1>
+                <p class="lead">Saat flash sale, request meningkat drastis → overload, stok tidak sinkron, pembayaran gagal.</p>
+                <h3>Alur aman flash sale:</h3>
+                <div class="diagram-box">
+                    <div class="node client">User Checkout</div>
+                    <div class="arrow">→</div>
+                    <div class="node middleware">API Gateway</div>
+                    <div class="arrow">→</div>
+                    <div class="node middleware">Queue / Broker</div>
+                    <div class="arrow">→</div>
+                    <div class="node-stack">
+                        <div class="node service">Order Svc</div>
+                        <div class="node service">Payment Svc</div>
+                        <div class="node service">Inventory Svc</div>
+                    </div>
+                </div>
+                <div class="pill-grid mt">
+                    <span class="pill">Load Balancing</span>
+                    <span class="pill">Rate Limiting</span>
+                    <span class="pill">Queue-based</span>
+                    <span class="pill">Auto-scaling</span>
+                    <span class="pill">Cache layer</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== MICROSERVICES FT =========== -->
+        <section class="slide" data-title="Microservices FT">
+            <div class="slide-content">
+                <span class="chapter">P9 · J</span>
+                <h1>Fault Tolerance dalam Microservices</h1>
+                <p class="lead">Satu service gagal <b>tidak boleh</b> membuat seluruh sistem mati.</p>
+                <div class="grid-2">
+                    <div class="card sm">
+                        <h3>🎭 Graceful Degradation</h3>
+                        <p>Sistem tetap jalan meski sebagian fitur tidak tersedia. Contoh: Recommendation mati, tapi checkout tetap bisa.</p>
+                    </div>
+                    <div class="card sm">
+                        <h3>🔄 Fallback</h3>
+                        <p>Layanan alternatif ketika service utama gagal.</p>
+                    </div>
+                    <div class="card sm">
+                        <h3>🧱 Bulkhead</h3>
+                        <p>Batasi dampak kegagalan agar tidak merambat ke seluruh sistem.</p>
+                    </div>
+                    <div class="card sm">
+                        <h3>📊 Monitoring &amp; Alerting</h3>
+                        <p>Deteksi gangguan cepat, notifikasi tim saat anomali.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== KESIMPULAN P10 =========== -->
+        <section class="slide" data-title="Kesimpulan P9">
+            <div class="slide-content">
+                <span class="chapter">P9 · Kesimpulan</span>
+                <h1>Kesimpulan Fault Tolerance</h1>
+                <div class="quote-box">
+                    <p>"Dalam sistem terdistribusi, kegagalan bukan pengecualian. Kegagalan adalah sesuatu yang harus <b>diasumsikan sejak awal desain</b>."</p>
+                </div>
+                <ul class="check-list">
+                    <li>Fault tolerance = sistem tetap berjalan saat ada komponen gagal</li>
+                    <li>Teknik utama: redundancy, replication, failover, retry, circuit breaker</li>
+                    <li>Reliability ≠ Availability — keduanya penting</li>
+                    <li>Graceful degradation lebih baik daripada total failure</li>
+                    <li>Desain untuk kegagalan sejak awal (Design for Failure)</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- =========== TERIMA KASIH =========== -->
+        <section class="slide cover" data-title="Terima Kasih">
+            <div class="slide-content">
+                <div class="badge">End of Presentation</div>
+                <h1 class="cover-title">Terima Kasih</h1>
+                <h2 class="cover-subtitle">Ada pertanyaan?</h2>
+                <p class="cover-meta">Sistem Terdistribusi · Pertemuan 8 &amp; 9</p>
+                <div class="cover-footer">
+                    <div>
+                        <span class="label">Dosen</span>
+                        <span class="value">Lubna, M.Kom.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Navigation Controls -->
+    <div class="nav-controls">
+        <button class="nav-btn" id="prevBtn" aria-label="Previous slide">‹</button>
+        <span class="slide-counter" id="slideCounter">1 / 24</span>
+        <button class="nav-btn" id="nextBtn" aria-label="Next slide">›</button>
+    </div>
+
+    <div class="hint">
+        <span>← →</span> nav · <span>F</span> fullscreen · <span>P</span> print PDF · <span>Esc</span> overview
+    </div>
+
+    <div class="overview-grid" id="overviewGrid"></div>
+
+    <script>
+// ===== Slide Navigation Engine =====
+const slides = document.querySelectorAll('.slide');
+const counter = document.getElementById('slideCounter');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const overviewGrid = document.getElementById('overviewGrid');
+const totalSlides = slides.length;
+let currentSlide = 0;
+
+function showSlide(index) {
+    if (index < 0 || index >= totalSlides) return;
+    slides.forEach(s => s.classList.remove('active'));
+    slides[index].classList.add('active');
+    currentSlide = index;
+    counter.textContent = `${index + 1} / ${totalSlides}`;
+    prevBtn.disabled = index === 0;
+    nextBtn.disabled = index === totalSlides - 1;
+    // Update URL hash
+    history.replaceState(null, '', `#${index + 1}`);
+}
+
+function nextSlide() {
+    if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1);
+}
+
+function prevSlide() {
+    if (currentSlide > 0) showSlide(currentSlide - 1);
+}
+
+// ===== Keyboard Navigation =====
+document.addEventListener('keydown', (e) => {
+    // If overview is open
+    if (overviewGrid.classList.contains('active')) {
+        if (e.key === 'Escape') toggleOverview();
+        return;
+    }
+
+    switch (e.key) {
+        case 'ArrowRight':
+        case 'ArrowDown':
+        case ' ':
+            e.preventDefault();
+            nextSlide();
+            break;
+        case 'ArrowLeft':
+        case 'ArrowUp':
+            e.preventDefault();
+            prevSlide();
+            break;
+        case 'Home':
+            e.preventDefault();
+            showSlide(0);
+            break;
+        case 'End':
+            e.preventDefault();
+            showSlide(totalSlides - 1);
+            break;
+        case 'f':
+        case 'F':
+            toggleFullscreen();
+            break;
+        case 'p':
+        case 'P':
+            window.print();
+            break;
+        case 'Escape':
+            toggleOverview();
+            break;
+    }
+});
+
+// ===== Button Navigation =====
+prevBtn.addEventListener('click', prevSlide);
+nextBtn.addEventListener('click', nextSlide);
+
+// ===== Click Navigation (left/right halves) =====
+document.querySelector('.presentation').addEventListener('click', (e) => {
+    if (overviewGrid.classList.contains('active')) return;
+    if (e.target.closest('.nav-controls') || e.target.closest('a') || e.target.closest('button')) return;
+    const x = e.clientX / window.innerWidth;
+    if (x > 0.65) nextSlide();
+    else if (x < 0.35) prevSlide();
+});
+
+// ===== Touch/Swipe Navigation =====
+let touchStartX = 0;
+let touchStartY = 0;
+
+document.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+}, { passive: true });
+
+document.addEventListener('touchend', (e) => {
+    if (overviewGrid.classList.contains('active')) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+        if (dx < 0) nextSlide();
+        else prevSlide();
+    }
+}, { passive: true });
+
+// ===== Fullscreen =====
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+        document.exitFullscreen();
+    }
+}
+
+// ===== Overview Grid =====
+function toggleOverview() {
+    overviewGrid.classList.toggle('active');
+}
+
+function buildOverview() {
+    overviewGrid.innerHTML = '';
+    slides.forEach((slide, i) => {
+        const thumb = document.createElement('div');
+        thumb.className = 'overview-thumb';
+        const title = slide.getAttribute('data-title') || `Slide ${i + 1}`;
+        thumb.innerHTML = `
+            <span class="overview-thumb-num">${i + 1}</span>
+            <span class="overview-thumb-title">${title}</span>
+        `;
+        thumb.addEventListener('click', () => {
+            showSlide(i);
+            toggleOverview();
+        });
+        overviewGrid.appendChild(thumb);
+    });
+}
+
+// ===== Init =====
+function init() {
+    buildOverview();
+    // Check URL hash
+    const hash = parseInt(location.hash.replace('#', ''));
+    if (hash && hash >= 1 && hash <= totalSlides) {
+        showSlide(hash - 1);
+    } else {
+        showSlide(0);
+    }
+}
+
+init();
+
+    </script>
+</body>
+</html>
