@@ -47,7 +47,7 @@
 html, body {
     height: 100%;
     font-family: 'Inter', -apple-system, sans-serif;
-    background: var(--bg-soft);
+    background: linear-gradient(160deg, #f5f3ff 0%, #fce7f3 30%, #ecfeff 60%, #f0fdf4 100%);
     color: var(--text);
     overflow: hidden;
 }
@@ -78,6 +78,12 @@ body {
     visibility: hidden;
     transition: opacity 0.4s ease, visibility 0.4s;
     overflow-y: auto;
+}
+
+/* First slide visible by default before JS loads */
+.slide:first-of-type {
+    opacity: 1;
+    visibility: visible;
 }
 
 .slide.active {
