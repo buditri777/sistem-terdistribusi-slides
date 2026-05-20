@@ -1,501 +1,1860 @@
-     1|<!DOCTYPE html>
-     2|<html lang="id">
-     3|<head>
-     4|    <meta charset="UTF-8">
-     5|    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     6|    <title>Sistem Terdistribusi — Middleware & Fault Tolerance</title>
-     7|    <link rel="preconnect" href="https://fonts.googleapis.com">
-     8|    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-     9|    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    10|    <style>
-    11|/* ===== Variables ===== */
-    12|:root {
-    13|    --primary: #6366f1;
-    14|    --primary-dark: #4f46e5;
-    15|    --primary-light: #818cf8;
-    16|    --accent-pink: #ec4899;
-    17|    --accent-cyan: #06b6d4;
-    18|    --accent-amber: #f59e0b;
-    19|    --accent-emerald: #10b981;
-    20|    --accent-violet: #8b5cf6;
-    21|    --accent-rose: #f43f5e;
-    22|    --accent-orange: #f97316;
-    23|
-    24|    --bg: #ffffff;
-    25|    --bg-soft: #fafbff;
-    26|    --bg-card: #ffffff;
-    27|    --bg-card-soft: #f5f3ff;
-    28|    --text: #1e293b;
-    29|    --text-muted: #475569;
-    30|    --text-dim: #94a3b8;
-    31|    --border: #e2e8f0;
-    32|    --border-strong: #cbd5e1;
-    33|
-    34|    --grad-blue: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-    35|    --grad-pink: linear-gradient(135deg, #ec4899 0%, #f97316 100%);
-    36|    --grad-cyan: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
-    37|    --grad-emerald: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
-    38|    --grad-sunset: linear-gradient(135deg, #f97316 0%, #ec4899 50%, #8b5cf6 100%);
-    39|    --grad-rainbow: linear-gradient(135deg, #ec4899 0%, #8b5cf6 25%, #6366f1 50%, #06b6d4 75%, #10b981 100%);
-    40|
-    41|    --radius: 20px;
-    42|    --radius-sm: 12px;
-    43|    --shadow-sm: 0 2px 8px rgba(99,102,241,.08), 0 1px 3px rgba(99,102,241,.06);
-    44|    --shadow: 0 8px 24px rgba(99,102,241,.12), 0 4px 8px rgba(99,102,241,.08);
-    45|    --shadow-lg: 0 24px 48px rgba(99,102,241,.18), 0 12px 24px rgba(99,102,241,.10);
-    46|    --shadow-color: 0 12px 32px rgba(236,72,153,.20);
-    47|    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    48|}
-    49|
-    50|/* ===== Reset ===== */
-    51|*, *::before, *::after {
-    52|    margin: 0;
-    53|    padding: 0;
-    54|    box-sizing: border-box;
-    55|}
-    56|
-    57|html, body {
-    58|    height: 100%;
-    59|    font-family: 'Inter', -apple-system, sans-serif;
-    60|    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0d1810 100%);
-    61|    color: var(--text);
-    62|    overflow: hidden;
-    63|}
-    64|
-    65|body {
-    66|    line-height: 1.55;
-    67|    font-size: 17px;
-    68|}
-    69|
-    70|/* ===== Presentation Container ===== */
-    71|.presentation {
-    72|    position: relative;
-    73|    width: 100vw;
-    74|    height: 100vh;
-    75|    overflow: hidden;
-    76|}
-    77|
-    78|/* ===== Slide ===== */
-    79|.slide {
-    80|    position: absolute;
-    81|    inset: 0;
-    82|    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0d1810 100%);
-    83|    padding: 48px 72px;
-    84|    display: flex;
-    85|    align-items: center;
-    86|    justify-content: center;
-    87|    opacity: 0;
-    88|    visibility: hidden;
-    89|    transition: opacity 0.4s ease, visibility 0.4s;
-    90|    overflow: hidden;
-    91|}
-    92|
-    93|.slide.active {
-    94|    opacity: 1;
-    95|    visibility: visible;
-    96|}
-    97|
-    98|.slide-content {
-    99|    width: 100%;
-   100|    max-width: 1280px;
-   101|    max-height: 100%;
-   102|    margin: 0 auto;
-   103|    overflow: hidden;
-   104|}
-   105|
-   106|/* ===== Cover Slides ===== */
-   107|.slide.cover {
-   108|    background: var(--grad-rainbow);
-   109|    color: white;
-   110|    text-align: center;
-   111|    position: relative;
-   112|    overflow: hidden;
-   113|}
-   114|
-   115|.slide.cover::before {
-   116|    content: "";
-   117|    position: absolute;
-   118|    inset: 0;
-   119|    background:
-   120|        radial-gradient(circle at 20% 20%, rgba(255,255,255,.15) 0%, transparent 50%),
-   121|        radial-gradient(circle at 80% 80%, rgba(255,255,255,.10) 0%, transparent 50%);
-   122|    pointer-events: none;
-   123|}
-   124|
-   125|.slide.cover .slide-content {
-   126|    display: flex;
-   127|    flex-direction: column;
-   128|    justify-content: center;
-   129|    align-items: center;
-   130|    height: 100%;
-   131|    gap: 20px;
-   132|    position: relative;
-   133|    z-index: 1;
-   134|}
-   135|
-   136|.badge {
-   137|    display: inline-block;
-   138|    padding: 10px 24px;
-   139|    background: rgba(255,255,255,.2);
-   140|    border: 2px solid rgba(255,255,255,.4);
-   141|    border-radius: 999px;
-   142|    font-size: 1rem;
-   143|    font-weight: 600;
-   144|    letter-spacing: 1px;
-   145|    margin-bottom: 12px;
-   146|    backdrop-filter: blur(10px);
-   147|}
-   148|
-   149|.cover-title {
-   150|    font-size: 5.5rem;
-   151|    font-weight: 800;
-   152|    line-height: 1.05;
-   153|    letter-spacing: -2px;
-   154|    color: white;
-   155|    text-shadow: 0 4px 24px rgba(0,0,0,.25);
-   156|}
-   157|
-   158|.cover-subtitle {
-   159|    font-size: 2rem;
-   160|    font-weight: 600;
-   161|    color: rgba(255,255,255,.95);
-   162|    max-width: 900px;
-   163|    line-height: 1.3;
-   164|}
-   165|
-   166|.cover-meta {
-   167|    color: rgba(255,255,255,.85);
-   168|    font-size: 1.25rem;
-   169|    margin-top: 12px;
-   170|    font-weight: 500;
-   171|}
-   172|
-   173|.cover-footer {
-   174|    margin-top: 56px;
-   175|    display: flex;
-   176|    gap: 64px;
-   177|}
-   178|
-   179|.cover-footer .label {
-   180|    display: block;
-   181|    font-size: 0.9rem;
-   182|    color: rgba(255,255,255,.7);
-   183|    text-transform: uppercase;
-   184|    letter-spacing: 1.5px;
-   185|    margin-bottom: 6px;
-   186|}
-   187|
-   188|.cover-footer .value {
-   189|    display: block;
-   190|    font-size: 1.3rem;
-   191|    font-weight: 700;
-   192|}
-   193|
-   194|/* ===== Section Divider ===== */
-   195|.section-divider {
-   196|    color: white;
-   197|    text-align: center;
-   198|    position: relative;
-   199|    overflow: hidden;
-   200|}
-   201|
-   202|.section-divider::before {
-   203|    content: "";
-   204|    position: absolute;
-   205|    inset: 0;
-   206|    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.15) 0%, transparent 50%);
-   207|}
-   208|
-   209|.section-divider .slide-content {
-   210|    position: relative;
-   211|    z-index: 1;
-   212|    display: flex;
-   213|    flex-direction: column;
-   214|    justify-content: center;
-   215|    align-items: center;
-   216|    height: 100%;
-   217|}
-   218|
-   219|.section-divider.blue {
-   220|    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
-   221|}
-   222|
-   223|.section-divider.green {
-   224|    background: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%);
-   225|}
-   226|
-   227|.chapter-big {
-   228|    display: inline-block;
-   229|    font-size: 1.2rem;
-   230|    font-weight: 700;
-   231|    text-transform: uppercase;
-   232|    letter-spacing: 4px;
-   233|    padding: 12px 28px;
-   234|    background: rgba(255,255,255,.2);
-   235|    border: 2px solid rgba(255,255,255,.4);
-   236|    border-radius: 999px;
-   237|    margin-bottom: 32px;
-   238|    backdrop-filter: blur(10px);
-   239|}
-   240|
-   241|.divider-title {
-   242|    font-size: 4.8rem;
-   243|    font-weight: 800;
-   244|    line-height: 1.1;
-   245|    margin-bottom: 20px;
-   246|    text-shadow: 0 4px 24px rgba(0,0,0,.15);
-   247|}
-   248|
-   249|.divider-sub {
-   250|    font-size: 1.6rem;
-   251|    color: rgba(255,255,255,.95);
-   252|    font-weight: 500;
-   253|}
-   254|
-   255|/* ===== Typography ===== */
-   256|.chapter {
-   257|    display: inline-block;
-   258|    font-size: 0.95rem;
-   259|    font-weight: 700;
-   260|    text-transform: uppercase;
-   261|    letter-spacing: 2px;
-   262|    color: white;
-   263|    background: var(--grad-blue);
-   264|    padding: 8px 18px;
-   265|    border-radius: 8px;
-   266|    margin-bottom: 20px;
-   267|    box-shadow: var(--shadow-sm);
-   268|}
-   269|
-   270|.slide h1 {
-   271|    font-size: 3.2rem;
-   272|    font-weight: 800;
-   273|    line-height: 1.15;
-   274|    letter-spacing: -1.5px;
-   275|    margin-bottom: 28px;
-   276|    background: var(--grad-blue);
-   277|    -webkit-background-clip: text;
-   278|    -webkit-text-fill-color: transparent;
-   279|    background-clip: text;
-   280|}
-   281|
-   282|.slide h3 {
-   283|    font-size: 1.4rem;
-   284|    font-weight: 700;
-   285|    margin-bottom: 12px;
-   286|    color: var(--text);
-   287|}
-   288|
-   289|.lead {
-   290|    font-size: 1.4rem;
-   291|    color: var(--text-muted);
-   292|    line-height: 1.55;
-   293|    margin-bottom: 32px;
-   294|    max-width: 1080px;
-   295|    font-weight: 400;
-   296|}
-   297|
-   298|.lead b {
-   299|    color: var(--primary);
-   300|    font-weight: 700;
-   301|}
-   302|
-   303|.caption {
-   304|    font-size: 1rem;
-   305|    color: var(--text-dim);
-   306|    font-style: italic;
-   307|    margin-top: 14px;
-   308|    text-align: center;
-   309|}
-   310|
-   311|.mt {
-   312|    margin-top: 32px;
-   313|}
-   314|
-   315|/* ===== Lists ===== */
-   316|.check-list {
-   317|    list-style: none;
-   318|    display: flex;
-   319|    flex-direction: column;
-   320|    gap: 16px;
-   321|}
-   322|
-   323|.check-list li {
-   324|    position: relative;
-   325|    padding-left: 44px;
-   326|    font-size: 1.2rem;
-   327|    color: var(--text);
-   328|    line-height: 1.5;
-   329|    font-weight: 500;
-   330|}
-   331|
-   332|.check-list li::before {
-   333|    content: "✓";
-   334|    position: absolute;
-   335|    left: 0;
-   336|    top: 2px;
-   337|    width: 30px;
-   338|    height: 30px;
-   339|    background: var(--grad-emerald);
-   340|    color: white;
-   341|    border-radius: 50%;
-   342|    display: flex;
-   343|    align-items: center;
-   344|    justify-content: center;
-   345|    font-size: 1rem;
-   346|    font-weight: 800;
-   347|    box-shadow: 0 4px 12px rgba(16,185,129,.3);
-   348|}
-   349|
-   350|/* ===== Cards ===== */
-   351|.grid-2 {
-   352|    display: grid;
-   353|    grid-template-columns: 1fr 1fr;
-   354|    gap: 24px;
-   355|}
-   356|
-   357|.grid-3 {
-   358|    display: grid;
-   359|    grid-template-columns: repeat(3, 1fr);
-   360|    gap: 20px;
-   361|}
-   362|
-   363|.card {
-   364|    background: var(--bg-card);
-   365|    border: 2px solid var(--border);
-   366|    border-radius: var(--radius);
-   367|    padding: 28px;
-   368|    box-shadow: var(--shadow-sm);
-   369|    transition: var(--transition);
-   370|    position: relative;
-   371|    overflow: hidden;
-   372|}
-   373|
-   374|.card::before {
-   375|    content: "";
-   376|    position: absolute;
-   377|    top: 0;
-   378|    left: 0;
-   379|    right: 0;
-   380|    height: 4px;
-   381|    background: var(--grad-blue);
-   382|    opacity: 0.6;
-   383|}
-   384|
-   385|.card:hover {
-   386|    border-color: var(--primary);
-   387|    box-shadow: var(--shadow);
-   388|    transform: translateY(-3px);
-   389|}
-   390|
-   391|.card.sm {
-   392|    padding: 22px;
-   393|}
-   394|
-   395|.card.highlight {
-   396|    background: linear-gradient(135deg, #f5f3ff 0%, #fce7f3 50%, #fef3c7 100%);
-   397|    border-color: #c7d2fe;
-   398|}
-   399|
-   400|.card.highlight::before {
-   401|    background: var(--grad-sunset);
-   402|    opacity: 1;
-   403|}
-   404|
-   405|.card.danger {
-   406|    background: linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%);
-   407|    border-color: #fca5a5;
-   408|}
-   409|
-   410|.card.danger::before {
-   411|    background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
-   412|    opacity: 1;
-   413|}
-   414|
-   415|.card.success {
-   416|    background: linear-gradient(135deg, #f0fdf4 0%, #ecfeff 100%);
-   417|    border-color: #86efac;
-   418|}
-   419|
-   420|.card.success::before {
-   421|    background: var(--grad-emerald);
-   422|    opacity: 1;
-   423|}
-   424|
-   425|.card-icon {
-   426|    width: 64px;
-   427|    height: 64px;
-   428|    background: var(--grad-blue);
-   429|    color: white;
-   430|    border-radius: 16px;
-   431|    display: flex;
-   432|    align-items: center;
-   433|    justify-content: center;
-   434|    font-weight: 800;
-   435|    font-size: 1.8rem;
-   436|    margin-bottom: 18px;
-   437|    box-shadow: 0 8px 16px rgba(99,102,241,.3);
-   438|}
-   439|
-   440|.card.highlight:nth-of-type(2) .card-icon {
-   441|    background: var(--grad-pink);
-   442|    box-shadow: 0 8px 16px rgba(236,72,153,.3);
-   443|}
-   444|
-   445|.card-emoji {
-   446|    font-size: 2.5rem;
-   447|    margin-bottom: 12px;
-   448|}
-   449|
-   450|.card-sub {
-   451|    font-size: 1.05rem;
-   452|    color: var(--text-muted);
-   453|    margin-bottom: 16px;
-   454|    font-weight: 500;
-   455|}
-   456|
-   457|.card ul {
-   458|    list-style: none;
-   459|    padding-left: 0;
-   460|}
-   461|
-   462|.card ul li {
-   463|    position: relative;
-   464|    padding-left: 22px;
-   465|    margin-bottom: 8px;
-   466|    font-size: 1.05rem;
-   467|    color: var(--text-muted);
-   468|}
-   469|
-   470|.card ul li::before {
-   471|    content: "▸";
-   472|    position: absolute;
-   473|    left: 0;
-   474|    color: var(--primary);
-   475|    font-weight: 700;
-   476|    font-size: 1.1rem;
-   477|}
-   478|
-   479|.card p {
-   480|    color: var(--text-muted);
-   481|    font-size: 1.05rem;
-   482|    margin-bottom: 8px;
-   483|    line-height: 1.5;
-   484|}
-   485|
-   486|.card.sm p {
-   487|    font-size: 1rem;
-   488|}
-   489|
-   490|/* Different gradient accents per card position in grid-3 */
-   491|.grid-3 .card:nth-of-type(1)::before { background: linear-gradient(135deg, #6366f1, #8b5cf6); opacity: 1; }
-   492|.grid-3 .card:nth-of-type(2)::before { background: linear-gradient(135deg, #ec4899, #f43f5e); opacity: 1; }
-   493|.grid-3 .card:nth-of-type(3)::before { background: linear-gradient(135deg, #06b6d4, #3b82f6); opacity: 1; }
-   494|.grid-3 .card:nth-of-type(4)::before { background: linear-gradient(135deg, #f59e0b, #f97316); opacity: 1; }
-   495|.grid-3 .card:nth-of-type(5)::before { background: linear-gradient(135deg, #10b981, #06b6d4); opacity: 1; }
-   496|.grid-3 .card:nth-of-type(6)::before { background: linear-gradient(135deg, #8b5cf6, #ec4899); opacity: 1; }
-   497|
-   498|.grid-2 .card.sm:nth-of-type(odd)::before { background: var(--grad-blue); opacity: 1; }
-   499|.grid-2 .card.sm:nth-of-type(even)::before { background: var(--grad-pink); opacity: 1; }
-   500|
-   501|
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Terdistribusi — Middleware & Fault Tolerance</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+/* ===== Variables ===== */
+:root {
+    --primary: #84cc16;
+    --primary-dark: #65a30d;
+    --primary-light: #a3e635;
+    --accent-pink: #ec4899;
+    --accent-cyan: #06b6d4;
+    --accent-amber: #f59e0b;
+    --accent-emerald: #84cc16;
+    --accent-violet: #8b5cf6;
+    --accent-rose: #f43f5e;
+    --accent-orange: #f97316;
+
+    --bg: #0f0f0f;
+    --bg-soft: #0f0f0f;
+    --bg-card: #1a1a1a;
+    --bg-card-soft: #1f1f1f;
+    --text: #f5f5f5;
+    --text-muted: #d4d4d4;
+    --text-dim: #a3a3a3;
+    --border: #333333;
+    --border-strong: #525252;
+
+    --grad-blue: linear-gradient(135deg, #84cc16 0%, #65a30d 100%);
+    --grad-pink: linear-gradient(135deg, #a3e635 0%, #84cc16 100%);
+    --grad-cyan: linear-gradient(135deg, #84cc16 0%, #4d7c0f 100%);
+    --grad-emerald: linear-gradient(135deg, #bef264 0%, #84cc16 100%);
+    --grad-sunset: linear-gradient(135deg, #84cc16 0%, #65a30d 50%, #4d7c0f 100%);
+    --grad-rainbow: linear-gradient(135deg, #0f0f0f 0%, #1a2e1a 40%, #84cc16 100%);
+
+    --radius: 20px;
+    --radius-sm: 12px;
+    --shadow-sm: 0 2px 8px rgba(99,102,241,.08), 0 1px 3px rgba(99,102,241,.06);
+    --shadow: 0 8px 24px rgba(99,102,241,.12), 0 4px 8px rgba(99,102,241,.08);
+    --shadow-lg: 0 24px 48px rgba(99,102,241,.18), 0 12px 24px rgba(99,102,241,.10);
+    --shadow-color: 0 12px 32px rgba(236,72,153,.20);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== Reset ===== */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #0f0f0f;
+    color: var(--text);
+    overflow: hidden;
+}
+
+body {
+    line-height: 1.55;
+    font-size: 17px;
+}
+
+/* ===== Presentation Container ===== */
+.presentation {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* ===== Slide ===== */
+.slide {
+    position: absolute;
+    inset: 0;
+    background: #0f0f0f;
+    padding: 48px 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease, visibility 0.4s;
+    overflow: hidden;
+}
+
+.slide.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.slide-content {
+    width: 100%;
+    max-width: 1280px;
+    max-height: 100%;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+/* ===== Cover Slides ===== */
+.slide.cover {
+    background: var(--grad-rainbow);
+    color: white;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.slide.cover::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(255,255,255,.10) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.slide.cover .slide-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    gap: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.badge {
+    display: inline-block;
+    padding: 10px 24px;
+    background: rgba(255,255,255,.2);
+    border: 2px solid rgba(255,255,255,.4);
+    border-radius: 999px;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    backdrop-filter: blur(10px);
+}
+
+.cover-title {
+    font-size: 5.5rem;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    color: white;
+    text-shadow: 0 4px 24px rgba(0,0,0,.25);
+}
+
+.cover-subtitle {
+    font-size: 2rem;
+    font-weight: 600;
+    color: rgba(255,255,255,.95);
+    max-width: 900px;
+    line-height: 1.3;
+}
+
+.cover-meta {
+    color: rgba(255,255,255,.85);
+    font-size: 1.25rem;
+    margin-top: 12px;
+    font-weight: 500;
+}
+
+.cover-footer {
+    margin-top: 56px;
+    display: flex;
+    gap: 64px;
+}
+
+.cover-footer .label {
+    display: block;
+    font-size: 0.9rem;
+    color: rgba(255,255,255,.7);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 6px;
+}
+
+.cover-footer .value {
+    display: block;
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+/* ===== Section Divider ===== */
+.section-divider {
+    color: white;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.section-divider::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.15) 0%, transparent 50%);
+}
+
+.section-divider .slide-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.section-divider.blue {
+    background: linear-gradient(135deg, #0f0f0f 0%, #1a2e1a 50%, #84cc16 100%);
+}
+
+.section-divider.green {
+    background: linear-gradient(135deg, #0f0f0f 0%, #84cc16 50%, #1a2e1a 100%);
+}
+
+.chapter-big {
+    display: inline-block;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    padding: 12px 28px;
+    background: rgba(255,255,255,.2);
+    border: 2px solid rgba(255,255,255,.4);
+    border-radius: 999px;
+    margin-bottom: 32px;
+    backdrop-filter: blur(10px);
+}
+
+.divider-title {
+    font-size: 4.8rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 20px;
+    text-shadow: 0 4px 24px rgba(0,0,0,.15);
+}
+
+.divider-sub {
+    font-size: 1.6rem;
+    color: rgba(255,255,255,.95);
+    font-weight: 500;
+}
+
+/* ===== Typography ===== */
+.chapter {
+    display: inline-block;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: white;
+    background: var(--grad-blue);
+    padding: 8px 18px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-sm);
+}
+
+.slide h1 {
+    font-size: 3.2rem;
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -1.5px;
+    margin-bottom: 28px;
+    background: var(--grad-blue);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.slide h3 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--text);
+}
+
+.lead {
+    font-size: 1.4rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+    margin-bottom: 32px;
+    max-width: 1080px;
+    font-weight: 400;
+}
+
+.lead b {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.caption {
+    font-size: 1rem;
+    color: var(--text-dim);
+    font-style: italic;
+    margin-top: 14px;
+    text-align: center;
+}
+
+.mt {
+    margin-top: 32px;
+}
+
+/* ===== Lists ===== */
+.check-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.check-list li {
+    position: relative;
+    padding-left: 44px;
+    font-size: 1.2rem;
+    color: var(--text);
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+.check-list li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    top: 2px;
+    width: 30px;
+    height: 30px;
+    background: var(--grad-emerald);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 800;
+    box-shadow: 0 4px 12px rgba(16,185,129,.3);
+}
+
+/* ===== Cards ===== */
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.card {
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--grad-blue);
+    opacity: 0.6;
+}
+
+.card:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow);
+    transform: translateY(-3px);
+}
+
+.card.sm {
+    padding: 22px;
+}
+
+.card.highlight {
+    background: linear-gradient(135deg, #1a2e1a 0%, #1a1a1a 100%);
+    border-color: #84cc16;
+}
+
+.card.highlight::before {
+    background: var(--grad-sunset);
+    opacity: 1;
+}
+
+.card.danger {
+    background: linear-gradient(135deg, #2e1a1a 0%, #1a1a1a 100%);
+    border-color: #ef4444;
+}
+
+.card.danger::before {
+    background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+    opacity: 1;
+}
+
+.card.success {
+    background: linear-gradient(135deg, #1a2e1a 0%, #1a1a1a 100%);
+    border-color: #84cc16;
+}
+
+.card.success::before {
+    background: var(--grad-emerald);
+    opacity: 1;
+}
+
+.card-icon {
+    width: 64px;
+    height: 64px;
+    background: var(--grad-blue);
+    color: white;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.8rem;
+    margin-bottom: 18px;
+    box-shadow: 0 8px 16px rgba(99,102,241,.3);
+}
+
+.card.highlight:nth-of-type(2) .card-icon {
+    background: var(--grad-pink);
+    box-shadow: 0 8px 16px rgba(236,72,153,.3);
+}
+
+.card-emoji {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+}
+
+.card-sub {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    font-weight: 500;
+}
+
+.card ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.card ul li {
+    position: relative;
+    padding-left: 22px;
+    margin-bottom: 8px;
+    font-size: 1.05rem;
+    color: var(--text-muted);
+}
+
+.card ul li::before {
+    content: "▸";
+    position: absolute;
+    left: 0;
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.card p {
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.card.sm p {
+    font-size: 1rem;
+}
+
+/* Different gradient accents per card position in grid-3 */
+.grid-3 .card:nth-of-type(1)::before { background: linear-gradient(135deg, #6366f1, #8b5cf6); opacity: 1; }
+.grid-3 .card:nth-of-type(2)::before { background: linear-gradient(135deg, #ec4899, #f43f5e); opacity: 1; }
+.grid-3 .card:nth-of-type(3)::before { background: linear-gradient(135deg, #06b6d4, #3b82f6); opacity: 1; }
+.grid-3 .card:nth-of-type(4)::before { background: linear-gradient(135deg, #f59e0b, #f97316); opacity: 1; }
+.grid-3 .card:nth-of-type(5)::before { background: linear-gradient(135deg, #10b981, #06b6d4); opacity: 1; }
+.grid-3 .card:nth-of-type(6)::before { background: linear-gradient(135deg, #8b5cf6, #ec4899); opacity: 1; }
+
+.grid-2 .card.sm:nth-of-type(odd)::before { background: var(--grad-blue); opacity: 1; }
+.grid-2 .card.sm:nth-of-type(even)::before { background: var(--grad-pink); opacity: 1; }
+
+/* ===== Pills ===== */
+.pill-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.pill {
+    display: inline-block;
+    padding: 8px 18px;
+    background: #1a1a1a;
+    color: var(--primary);
+    border: 2px solid var(--primary);
+    border-radius: 999px;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.pill:hover {
+    background: var(--grad-blue);
+    color: white;
+    border-color: transparent;
+    transform: translateY(-2px);
+}
+
+.pill-grid .pill:nth-child(2) { color: var(--accent-pink); border-color: var(--accent-pink); }
+.pill-grid .pill:nth-child(2):hover { background: var(--grad-pink); }
+.pill-grid .pill:nth-child(3) { color: var(--accent-cyan); border-color: var(--accent-cyan); }
+.pill-grid .pill:nth-child(3):hover { background: var(--grad-cyan); }
+.pill-grid .pill:nth-child(4) { color: var(--accent-amber); border-color: var(--accent-amber); }
+.pill-grid .pill:nth-child(4):hover { background: linear-gradient(135deg, #f59e0b, #f97316); color: white; }
+.pill-grid .pill:nth-child(5) { color: var(--accent-emerald); border-color: var(--accent-emerald); }
+.pill-grid .pill:nth-child(5):hover { background: var(--grad-emerald); }
+.pill-grid .pill:nth-child(6) { color: var(--accent-violet); border-color: var(--accent-violet); }
+.pill-grid .pill:nth-child(6):hover { background: linear-gradient(135deg, #8b5cf6, #ec4899); color: white; }
+
+/* ===== Diagrams ===== */
+.diagram-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 32px 20px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #1a2e1a 100%);
+    border: 2px solid #84cc16;
+    border-radius: var(--radius);
+    margin: 20px 0;
+    flex-wrap: wrap;
+    box-shadow: var(--shadow-sm);
+}
+
+.node {
+    padding: 18px 24px;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    min-width: 150px;
+    transition: var(--transition);
+}
+
+.node:hover {
+    transform: scale(1.05);
+    box-shadow: var(--shadow);
+}
+
+.node small {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-top: 4px;
+    opacity: 0.85;
+}
+
+.node.client {
+    background: linear-gradient(135deg, #1a2e1a 0%, #1a3a1a 100%);
+    color: #a3e635;
+    border: 2px solid #84cc16;
+}
+
+.node.middleware {
+    background: linear-gradient(135deg, #2e2e1a 0%, #1a1a1a 100%);
+    color: #fbbf24;
+    border: 2px solid #f59e0b;
+}
+
+.node.service {
+    background: linear-gradient(135deg, #1a2e1a 0%, #1a3a1a 100%);
+    color: #84cc16;
+    border: 2px solid #84cc16;
+}
+
+.node.db {
+    background: linear-gradient(135deg, #1a1a2e 0%, #1a1a3a 100%);
+    color: #c084fc;
+    border: 2px solid #c084fc;
+}
+
+.node-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.arrow {
+    font-size: 2rem;
+    background: var(--grad-blue);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 800;
+}
+
+/* Architecture Diagram (vertical) */
+.arch-diagram {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 28px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #1a2e1a 100%);
+    border-radius: var(--radius);
+    border: 2px solid #84cc16;
+}
+
+.arch-row {
+    display: flex;
+    gap: 14px;
+}
+
+.arch-row.multi {
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.arch-arrow {
+    font-size: 1.8rem;
+    background: var(--grad-blue);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 800;
+}
+
+/* ===== Steps ===== */
+.steps-box {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin: 20px 0;
+}
+
+.steps-box.compact {
+    gap: 12px;
+}
+
+.step {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 18px 22px;
+    background: #1a1a1a;
+    border: 2px solid #84cc16;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+
+.step:hover {
+    border-color: var(--primary);
+    transform: translateX(4px);
+}
+
+.step-num {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--grad-blue);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.1rem;
+    box-shadow: 0 6px 12px rgba(99,102,241,.3);
+}
+
+.step-num.green { background: var(--grad-emerald); box-shadow: 0 6px 12px rgba(16,185,129,.3); }
+.step-num.yellow { background: linear-gradient(135deg, #f59e0b, #f97316); box-shadow: 0 6px 12px rgba(245,158,11,.3); }
+.step-num.red { background: linear-gradient(135deg, #ef4444, #ec4899); box-shadow: 0 6px 12px rgba(239,68,68,.3); }
+
+.step-text {
+    color: var(--text);
+    font-size: 1.15rem;
+    font-weight: 500;
+}
+
+/* ===== Chain Diagram ===== */
+.chain-diagram {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin: 28px 0;
+    flex-wrap: wrap;
+}
+
+.chain-item {
+    flex: 1 1 220px;
+    max-width: 270px;
+    padding: 28px 22px;
+    border-radius: var(--radius);
+    text-align: center;
+    border: 2px solid;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+
+.chain-item:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow);
+}
+
+.chain-item h3 {
+    font-size: 1.6rem;
+    margin-bottom: 10px;
+}
+
+.chain-item p {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.chain-item small {
+    display: block;
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    margin-top: 6px;
+    font-style: italic;
+}
+
+.chain-item.fault {
+    background: linear-gradient(135deg, #2e2e1a 0%, #1a1a1a 100%);
+    border-color: #f59e0b;
+    color: #fbbf24;
+}
+
+.chain-item.error {
+    background: linear-gradient(135deg, #2e1a1a 0%, #1a1a1a 100%);
+    border-color: #f87171;
+    color: #fca5a5;
+}
+
+.chain-item.failure {
+    background: linear-gradient(135deg, #2e0a0a 0%, #1a0a0a 100%);
+    border-color: #ef4444;
+    color: #fca5a5;
+}
+
+.chain-arrow {
+    font-size: 2.5rem;
+    background: var(--grad-sunset);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 800;
+}
+
+/* ===== Tables ===== */
+.slide-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #1a1a1a;
+    border: 2px solid #84cc16;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    font-size: 1.1rem;
+}
+
+.slide-table thead th {
+    background: var(--grad-blue);
+    color: white;
+    padding: 18px 22px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 0.3px;
+}
+
+.slide-table tbody td {
+    padding: 16px 22px;
+    border-top: 1px solid var(--border);
+    font-size: 1.05rem;
+    color: var(--text);
+}
+
+.slide-table tbody tr:nth-child(odd) {
+    background: #1f1f1f;
+}
+
+.slide-table tbody tr:hover {
+    background: linear-gradient(135deg, #1a1a1a 0%, #1a2e1a 100%);
+}
+
+.slide-table tbody td b {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+/* ===== Quote Box ===== */
+.quote-box {
+    background: var(--grad-rainbow);
+    padding: 4px;
+    border-radius: var(--radius);
+    margin: 24px 0;
+    box-shadow: var(--shadow);
+}
+
+.quote-box p {
+    background: #1a1a1a;
+    padding: 24px 32px;
+    border-radius: calc(var(--radius) - 4px);
+    font-size: 1.35rem;
+    font-style: italic;
+    color: var(--text);
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+.quote-box p b {
+    background: var(--grad-blue);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 800;
+    font-style: normal;
+}
+
+/* ===== Navigation Controls ===== */
+.nav-controls {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    background: #1a1a1a;
+    backdrop-filter: blur(8px);
+    padding: 10px 20px;
+    border-radius: 999px;
+    box-shadow: var(--shadow-lg);
+    border: 2px solid var(--border);
+    z-index: 100;
+}
+
+.nav-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: var(--grad-blue);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 1.6rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    box-shadow: 0 4px 12px rgba(99,102,241,.3);
+}
+
+.nav-btn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 16px rgba(99,102,241,.5);
+}
+
+.nav-btn:disabled {
+    background: var(--text-dim);
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.slide-counter {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+    min-width: 80px;
+    text-align: center;
+}
+
+/* ===== Hint ===== */
+.hint {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    background: #1a1a1a;
+    backdrop-filter: blur(8px);
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    border: 2px solid var(--border);
+    z-index: 99;
+    font-weight: 500;
+}
+
+.hint span {
+    background: linear-gradient(135deg, #1a1a1a 0%, #1a2e1a 100%);
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 1px solid #84cc16;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 0 3px;
+    font-size: 0.85rem;
+}
+
+/* ===== Overview Grid ===== */
+.overview-grid {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,.94);
+    z-index: 200;
+    padding: 48px;
+    overflow-y: auto;
+    display: none;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 18px;
+    align-content: start;
+}
+
+.overview-grid.active {
+    display: grid;
+}
+
+.overview-thumb {
+    background: #1a1a1a;
+    border-radius: var(--radius-sm);
+    padding: 20px;
+    cursor: pointer;
+    aspect-ratio: 16/9;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    transition: var(--transition);
+    position: relative;
+    box-shadow: var(--shadow);
+}
+
+.overview-thumb::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--grad-rainbow);
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+.overview-thumb:hover {
+    transform: scale(1.06);
+    box-shadow: var(--shadow-lg);
+}
+
+.overview-thumb-num {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: var(--grad-blue);
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 800;
+    box-shadow: 0 4px 8px rgba(99,102,241,.3);
+}
+
+.overview-thumb-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+/* ===== Print / PDF ===== */
+@media print {
+    @page {
+        size: 1280px 720px;
+        margin: 0;
+    }
+
+    html, body {
+        overflow: visible !important;
+        height: auto !important;
+    }
+
+    .presentation {
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    .slide {
+        position: relative !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        page-break-after: always;
+        height: 720px !important;
+        width: 1280px !important;
+        inset: auto !important;
+    }
+
+    .nav-controls, .hint, .overview-grid {
+        display: none !important;
+    }
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 900px) {
+    .slide {
+        padding: 32px 24px;
+    }
+
+    body { font-size: 15px; }
+
+    .cover-title { font-size: 3.2rem; }
+    .divider-title { font-size: 2.8rem; }
+    .slide h1 { font-size: 2.2rem; }
+    .lead { font-size: 1.15rem; }
+    .check-list li { font-size: 1.05rem; }
+
+    .grid-2, .grid-3 {
+        grid-template-columns: 1fr;
+    }
+
+    .diagram-box {
+        flex-direction: column;
+    }
+
+    .arrow { transform: rotate(90deg); }
+
+    .chain-diagram { flex-direction: column; }
+    .chain-arrow { transform: rotate(90deg); }
+
+    .cover-footer { flex-direction: column; gap: 18px; }
+
+    .slide-table { font-size: 0.9rem; }
+    .slide-table thead th, .slide-table tbody td { padding: 10px 12px; }
+}
+
+    </style>
+</head>
+<body>
+    <div class="presentation" id="presentation">
+
+        <!-- =========== COVER =========== -->
+        <section class="slide cover active" data-title="Cover">
+            <div class="slide-content">
+                <div class="badge">Mata Kuliah</div>
+                <h1 class="cover-title">Sistem Terdistribusi</h1>
+                <h2 class="cover-subtitle">Middleware &amp; Fault Tolerance — Reliability</h2>
+                <p class="cover-meta">Bahan Ajar Setelah UTS · Pertemuan 8 &amp; 9</p>
+                <div class="cover-footer">
+                    <div>
+                        <span class="label">Dosen Pengampu</span>
+                        <span class="value">Lubna, M.Kom.</span>
+                    </div>
+                    <div>
+                        <span class="label">Kampus</span>
+                        <span class="value">Universitas Duta Bangsa</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== AGENDA =========== -->
+        <section class="slide" data-title="Agenda">
+            <div class="slide-content">
+                <span class="chapter">Daftar Isi</span>
+                <h1>Yang akan kita pelajari</h1>
+                <div class="grid-2">
+                    <div class="card highlight">
+                        <div class="card-icon">8</div>
+                        <h3>Pertemuan 8</h3>
+                        <p class="card-sub">Middleware pada Sistem Terdistribusi</p>
+                        <ul>
+                            <li>Konsep &amp; fungsi middleware</li>
+                            <li>Jenis middleware</li>
+                            <li>Message Broker</li>
+                            <li>API Gateway</li>
+                            <li>Service Discovery</li>
+                            <li>Studi kasus E-Commerce</li>
+                        </ul>
+                    </div>
+                    <div class="card highlight">
+                        <div class="card-icon">9</div>
+                        <h3>Pertemuan 9</h3>
+                        <p class="card-sub">Fault Tolerance &amp; Reliability</p>
+                        <ul>
+                            <li>Fault, Error, Failure</li>
+                            <li>Jenis kegagalan</li>
+                            <li>Reliability &amp; Availability</li>
+                            <li>Teknik fault tolerance</li>
+                            <li>Studi kasus mobile banking</li>
+                            <li>Flash sale e-commerce</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== PERTEMUAN 9 OPENING =========== -->
+        <section class="slide section-divider blue" data-title="P8 Opening">
+            <div class="slide-content">
+                <span class="chapter-big">Pertemuan 8</span>
+                <h1 class="divider-title">Middleware pada Sistem Terdistribusi</h1>
+                <p class="divider-sub">Jembatan penghubung antar komponen sistem</p>
+            </div>
+        </section>
+
+        <!-- =========== CAPAIAN PEMBELAJARAN P9 =========== -->
+        <section class="slide" data-title="Capaian P8">
+            <div class="slide-content">
+                <span class="chapter">P8 · A</span>
+                <h1>Capaian Pembelajaran</h1>
+                <p class="lead">Setelah pertemuan ini, mahasiswa mampu:</p>
+                <ul class="check-list">
+                    <li>Menjelaskan pengertian middleware dalam sistem terdistribusi</li>
+                    <li>Menjelaskan fungsi middleware sebagai penghubung antar komponen</li>
+                    <li>Mengidentifikasi jenis-jenis middleware</li>
+                    <li>Menjelaskan konsep <b>message broker</b>, <b>API gateway</b>, dan <b>service discovery</b></li>
+                    <li>Menganalisis peran middleware pada aplikasi modern (e-commerce, mobile banking, cloud, ride-hailing)</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- =========== PENGANTAR MIDDLEWARE =========== -->
+        <section class="slide" data-title="Pengantar Middleware">
+            <div class="slide-content">
+                <span class="chapter">P8 · B</span>
+                <h1>Apa itu Middleware?</h1>
+                <p class="lead">Middleware adalah perangkat lunak yang berada <b>di antara aplikasi, sistem operasi, jaringan, database, atau layanan lain</b> untuk membantu komunikasi dan integrasi antar komponen.</p>
+                <div class="diagram-box">
+                    <div class="node client">Client</div>
+                    <div class="arrow">→</div>
+                    <div class="node middleware">Middleware</div>
+                    <div class="arrow">→</div>
+                    <div class="node-stack">
+                        <div class="node service">Service A</div>
+                        <div class="node service">Service B</div>
+                        <div class="node service">Service C</div>
+                    </div>
+                </div>
+                <p class="caption">Middleware sebagai jembatan penghubung antara client dan backend service.</p>
+            </div>
+        </section>
+
+        <!-- =========== MENGAPA MIDDLEWARE =========== -->
+        <section class="slide" data-title="Mengapa Middleware">
+            <div class="slide-content">
+                <span class="chapter">P8 · C</span>
+                <h1>Mengapa Middleware Dibutuhkan?</h1>
+                <div class="grid-2">
+                    <div class="card danger">
+                        <h3>❌ Tanpa Middleware</h3>
+                        <p>Service A harus tahu detail Service B, C, dan D. Komunikasi rumit, sulit di-maintain, sulit scaling.</p>
+                    </div>
+                    <div class="card success">
+                        <h3>✅ Dengan Middleware</h3>
+                        <p>Service A cukup bicara dengan lapisan perantara. Middleware mengurus routing, format, security, retry.</p>
+                    </div>
+                </div>
+                <h3 class="mt">Manfaat utama:</h3>
+                <div class="pill-grid">
+                    <span class="pill">Cross-platform</span>
+                    <span class="pill">Data transformation</span>
+                    <span class="pill">Komunikasi sederhana</span>
+                    <span class="pill">Keamanan</span>
+                    <span class="pill">Skalabilitas</span>
+                    <span class="pill">Monitoring &amp; logging</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== FUNGSI MIDDLEWARE =========== -->
+        <section class="slide" data-title="Fungsi Middleware">
+            <div class="slide-content">
+                <span class="chapter">P8 · D</span>
+                <h1>Fungsi Middleware</h1>
+                <div class="grid-3">
+                    <div class="card sm">
+                        <div class="card-emoji">📡</div>
+                        <h3>Communication Management</h3>
+                        <p>Mengatur komunikasi antar komponen (client → API Gateway → service).</p>
+                    </div>
+                    <div class="card sm">
+                        <div class="card-emoji">🔄</div>
+                        <h3>Data Transformation</h3>
+                        <p>Konversi format: XML ↔ JSON, JSON ↔ object, object ↔ message.</p>
+                    </div>
+                    <div class="card sm">
+                        <div class="card-emoji">🔗</div>
+                        <h3>Service Integration</h3>
+                        <p>Menggabungkan User, Product, Order, Payment, Shipping menjadi sistem utuh.</p>
+                    </div>
+                    <div class="card sm">
+                        <div class="card-emoji">⚖️</div>
+                        <h3>Load Balancing</h3>
+                        <p>Membagi beban request ke beberapa server agar tidak overload.</p>
+                    </div>
+                    <div class="card sm">
+                        <div class="card-emoji">🔐</div>
+                        <h3>Security Handling</h3>
+                        <p>Cek token login, hak akses, validasi request, enkripsi komunikasi.</p>
+                    </div>
+                    <div class="card sm">
+                        <div class="card-emoji">🛡️</div>
+                        <h3>Error Handling</h3>
+                        <p>Retry, fallback, redirect ke server lain, log kegagalan.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== JENIS MIDDLEWARE =========== -->
+        <section class="slide" data-title="Jenis Middleware">
+            <div class="slide-content">
+                <span class="chapter">P8 · E</span>
+                <h1>Jenis-Jenis Middleware</h1>
+                <table class="slide-table">
+                    <thead>
+                        <tr><th>Jenis</th><th>Fungsi</th><th>Contoh</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Message-Oriented</td><td>Komunikasi via pesan (async)</td><td>RabbitMQ, Kafka</td></tr>
+                        <tr><td>RPC Middleware</td><td>Pemanggilan fungsi jarak jauh</td><td>gRPC, XML-RPC</td></tr>
+                        <tr><td>Object Middleware</td><td>Komunikasi antar objek</td><td>CORBA, Java RMI</td></tr>
+                        <tr><td>Database Middleware</td><td>Akses data lintas platform</td><td>ODBC, JDBC</td></tr>
+                        <tr><td>Transaction Middleware</td><td>Koordinasi transaksi terdistribusi</td><td>JTA, MSDTC</td></tr>
+                        <tr><td>API Gateway</td><td>Pintu masuk tunggal</td><td>Kong, NGINX, AWS API GW</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- =========== MESSAGE BROKER =========== -->
+        <section class="slide" data-title="Message Broker">
+            <div class="slide-content">
+                <span class="chapter">P8 · F</span>
+                <h1>Message Broker</h1>
+                <p class="lead">Perantara pengiriman pesan antar service secara <b>asynchronous</b> — pengirim tidak perlu menunggu penerima selesai memproses.</p>
+                <div class="diagram-box">
+                    <div class="node service">Producer<br><small>Order Service</small></div>
+                    <div class="arrow">→</div>
+                    <div class="node middleware">Message Broker<br><small>RabbitMQ / Kafka</small></div>
+                    <div class="arrow">→</div>
+                    <div class="node-stack">
+                        <div class="node service">Payment Service</div>
+                        <div class="node service">Shipping Service</div>
+                        <div class="node service">Notification Service</div>
+                    </div>
+                </div>
+                <div class="grid-2 mt">
+                    <div class="card sm">
+                        <h3>Synchronous</h3>
+                        <p>Client menunggu response → blocking, lambat jika banyak service.</p>
+                    </div>
+                    <div class="card sm">
+                        <h3>Asynchronous</h3>
+                        <p>Client kirim pesan → lanjut kerja. Consumer proses di background.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== API GATEWAY =========== -->
+        <section class="slide" data-title="API Gateway">
+            <div class="slide-content">
+                <span class="chapter">P8 · G</span>
+                <h1>API Gateway</h1>
+                <p class="lead">Pintu masuk utama bagi client untuk mengakses berbagai service. Client cukup menghubungi satu endpoint.</p>
+                <div class="diagram-box">
+                    <div class="node client">Mobile / Web</div>
+                    <div class="arrow">→</div>
+                    <div class="node middleware">API Gateway</div>
+                    <div class="arrow">→</div>
+                    <div class="node-stack">
+                        <div class="node service">/api/users → User Svc</div>
+                        <div class="node service">/api/products → Product Svc</div>
+                        <div class="node service">/api/orders → Order Svc</div>
+                    </div>
+                </div>
+                <h3 class="mt">Fungsi API Gateway:</h3>
+                <div class="pill-grid">
+                    <span class="pill">Routing</span>
+                    <span class="pill">Authentication</span>
+                    <span class="pill">Authorization</span>
+                    <span class="pill">Rate Limiting</span>
+                    <span class="pill">Load Balancing</span>
+                    <span class="pill">Logging &amp; Monitoring</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== SERVICE DISCOVERY =========== -->
+        <section class="slide" data-title="Service Discovery">
+            <div class="slide-content">
+                <span class="chapter">P8 · H</span>
+                <h1>Service Discovery</h1>
+                <p class="lead">Mekanisme agar service dapat <b>menemukan alamat service lain secara otomatis</b>. Penting karena alamat bisa berubah (autoscaling, restart, deploy baru).</p>
+                <div class="steps-box">
+                    <div class="step">
+                        <div class="step-num">1</div>
+                        <div class="step-text">Service A mendaftar ke <b>Service Registry</b></div>
+                    </div>
+                    <div class="step">
+                        <div class="step-num">2</div>
+                        <div class="step-text">Service B mencari alamat Service A di Registry</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-num">3</div>
+                        <div class="step-text">Service B mengirim request ke Service A (alamat terbaru)</div>
+                    </div>
+                </div>
+                <div class="pill-grid mt">
+                    <span class="pill">Service Provider</span>
+                    <span class="pill">Service Consumer</span>
+                    <span class="pill">Service Registry</span>
+                </div>
+                <p class="caption">Contoh: Consul, Eureka, etcd, Kubernetes DNS</p>
+            </div>
+        </section>
+
+        <!-- =========== STUDI KASUS E-COMMERCE =========== -->
+        <section class="slide" data-title="Studi Kasus E-Commerce">
+            <div class="slide-content">
+                <span class="chapter">P8 · J</span>
+                <h1>Studi Kasus: E-Commerce</h1>
+                <p class="lead">Arsitektur e-commerce modern dengan middleware:</p>
+                <div class="arch-diagram">
+                    <div class="arch-row">
+                        <div class="node client">Mobile App / Website</div>
+                    </div>
+                    <div class="arch-arrow">↓</div>
+                    <div class="arch-row">
+                        <div class="node middleware">API Gateway</div>
+                    </div>
+                    <div class="arch-arrow">↓</div>
+                    <div class="arch-row multi">
+                        <div class="node service">Order Svc</div>
+                        <div class="node service">Payment Svc</div>
+                        <div class="node service">Inventory Svc</div>
+                    </div>
+                    <div class="arch-arrow">↓</div>
+                    <div class="arch-row">
+                        <div class="node middleware">Message Broker</div>
+                    </div>
+                    <div class="arch-arrow">↓</div>
+                    <div class="arch-row multi">
+                        <div class="node service">Notification Svc</div>
+                        <div class="node db">Replicated DB</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== KESIMPULAN P9 =========== -->
+        <section class="slide" data-title="Kesimpulan P8">
+            <div class="slide-content">
+                <span class="chapter">P8 · Kesimpulan</span>
+                <h1>Kesimpulan Middleware</h1>
+                <div class="quote-box">
+                    <p>"Middleware membuat sistem yang kompleks terlihat lebih sederhana dan terstruktur bagi pengguna maupun pengembang."</p>
+                </div>
+                <ul class="check-list">
+                    <li>Middleware = penghubung antar komponen sistem terdistribusi</li>
+                    <li>Membuat sistem lebih terorganisir, mudah di-maintain, dan scalable</li>
+                    <li>3 middleware utama: <b>Message Broker</b>, <b>API Gateway</b>, <b>Service Discovery</b></li>
+                    <li>Digunakan di hampir semua aplikasi modern (e-commerce, banking, ride-hailing)</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- =========== PERTEMUAN 10 DIVIDER =========== -->
+        <section class="slide section-divider green" data-title="P9 Opening">
+            <div class="slide-content">
+                <span class="chapter-big">Pertemuan 9</span>
+                <h1 class="divider-title">Fault Tolerance &amp; Reliability</h1>
+                <p class="divider-sub">Membangun sistem yang tetap berjalan saat ada kegagalan</p>
+            </div>
+        </section>
+
+        <!-- =========== CAPAIAN P10 =========== -->
+        <section class="slide" data-title="Capaian P8">
+            <div class="slide-content">
+                <span class="chapter">P8 · A</span>
+                <h1>Capaian Pembelajaran</h1>
+                <p class="lead">Setelah pertemuan ini, mahasiswa mampu:</p>
+                <ul class="check-list">
+                    <li>Menjelaskan konsep fault, error, dan failure</li>
+                    <li>Mengidentifikasi jenis kegagalan dalam sistem terdistribusi</li>
+                    <li>Menjelaskan konsep fault tolerance</li>
+                    <li>Memahami teknik: redundancy, replication, checkpointing, failover, retry, timeout, recovery</li>
+                    <li>Menganalisis strategi peningkatan reliability pada sistem nyata</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- =========== FAULT ERROR FAILURE =========== -->
+        <section class="slide" data-title="Fault Error Failure">
+            <div class="slide-content">
+                <span class="chapter">P8 · D</span>
+                <h1>Fault → Error → Failure</h1>
+                <p class="lead">Fault tolerance = kemampuan sistem tetap memberikan layanan meskipun sebagian komponen gagal.</p>
+                <div class="chain-diagram">
+                    <div class="chain-item fault">
+                        <h3>Fault</h3>
+                        <p>Penyebab masalah<br><small>Bug pada kode pembayaran</small></p>
+                    </div>
+                    <div class="chain-arrow">→</div>
+                    <div class="chain-item error">
+                        <h3>Error</h3>
+                        <p>Kondisi tidak benar<br><small>Data transaksi salah</small></p>
+                    </div>
+                    <div class="chain-arrow">→</div>
+                    <div class="chain-item failure">
+                        <h3>Failure</h3>
+                        <p>Layanan gagal<br><small>Pembayaran gagal</small></p>
+                    </div>
+                </div>
+                <p class="caption mt">"Sistem yang baik bukan yang tidak pernah gagal, tetapi yang tetap berjalan saat ada kegagalan."</p>
+            </div>
+        </section>
+
+        <!-- =========== JENIS KEGAGALAN =========== -->
+        <section class="slide" data-title="Jenis Kegagalan">
+            <div class="slide-content">
+                <span class="chapter">P8 · E</span>
+                <h1>Jenis-Jenis Kegagalan</h1>
+                <table class="slide-table">
+                    <thead>
+                        <tr><th>Jenis</th><th>Deskripsi</th><th>Contoh</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><b>Crash</b></td><td>Node berhenti total</td><td>Server mati mendadak</td></tr>
+                        <tr><td><b>Omission</b></td><td>Gagal kirim/terima pesan</td><td>Paket data hilang</td></tr>
+                        <tr><td><b>Timing</b></td><td>Response terlambat</td><td>Payment response 30s (timeout 5s)</td></tr>
+                        <tr><td><b>Response</b></td><td>Response salah</td><td>Minta data A, dapat data B</td></tr>
+                        <tr><td><b>Byzantine</b></td><td>Node beri info tidak konsisten</td><td>Paling kompleks, sulit dideteksi</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- =========== RELIABILITY & AVAILABILITY =========== -->
+        <section class="slide" data-title="Reliability vs Availability">
+            <div class="slide-content">
+                <span class="chapter">P8 · F</span>
+                <h1>Reliability vs Availability</h1>
+                <div class="grid-2">
+                    <div class="card highlight">
+                        <div class="card-emoji">🎯</div>
+                        <h3>Reliability</h3>
+                        <p>Kemampuan sistem memberikan layanan yang <b>benar</b> dalam jangka waktu tertentu.</p>
+                        <p class="caption">Fokus: kebenaran output</p>
+                    </div>
+                    <div class="card highlight">
+                        <div class="card-emoji">⏰</div>
+                        <h3>Availability</h3>
+                        <p>Kemampuan sistem untuk <b>tersedia</b> saat dibutuhkan.</p>
+                        <p class="caption">Fokus: uptime</p>
+                    </div>
+                </div>
+                <div class="quote-box mt">
+                    <p>Sistem bisa <b>available</b> tapi tidak <b>reliable</b> — tersedia tapi hasilnya salah.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== TEKNIK FAULT TOLERANCE =========== -->
+        <section class="slide" data-title="Teknik FT">
+            <div class="slide-content">
+                <span class="chapter">P8 · G</span>
+                <h1>Teknik Fault Tolerance</h1>
+                <div class="grid-2">
+                    <div class="card sm">
+                        <h3>🔁 Redundancy</h3>
+                        <p>Komponen cadangan agar sistem tetap jalan jika komponen utama gagal.</p>
+                    </div>
+                    <div class="card sm">
+                        <h3>📋 Replication</h3>
+                        <p>Salin data/service ke beberapa node. Tingkatkan availability.</p>
+                    </div>
+                    <div class="card sm">
+                        <h3>🔀 Failover</h3>
+                        <p>Perpindahan otomatis ke komponen cadangan saat utama gagal.</p>
+                    </div>
+                    <div class="card sm">
+                        <h3>💾 Checkpointing</h3>
+                        <p>Simpan kondisi sistem di titik tertentu. Gagal? Lanjut dari checkpoint.</p>
+                    </div>
+                    <div class="card sm">
+                        <h3>🔄 Retry &amp; Timeout</h3>
+                        <p>Coba ulang request gagal (dengan batas). Timeout = batas waktu tunggu.</p>
+                    </div>
+                    <div class="card sm">
+                        <h3>🔌 Circuit Breaker</h3>
+                        <p>Hentikan request ke service bermasalah. Cegah kerusakan menyebar.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== FAILOVER DIAGRAM =========== -->
+        <section class="slide" data-title="Failover">
+            <div class="slide-content">
+                <span class="chapter">P8 · G.3</span>
+                <h1>Failover &amp; Circuit Breaker</h1>
+                <div class="grid-2">
+                    <div>
+                        <h3>Failover</h3>
+                        <div class="steps-box compact">
+                            <div class="step">
+                                <div class="step-num">✓</div>
+                                <div class="step-text">Normal: Client → Server Utama → DB</div>
+                            </div>
+                            <div class="step">
+                                <div class="step-num">⚠️</div>
+                                <div class="step-text">Server utama gagal</div>
+                            </div>
+                            <div class="step">
+                                <div class="step-num">✓</div>
+                                <div class="step-text">Auto: Client → Server Cadangan → DB</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3>Circuit Breaker</h3>
+                        <div class="steps-box compact">
+                            <div class="step">
+                                <div class="step-num green">🟢</div>
+                                <div class="step-text"><b>Closed</b> — request normal</div>
+                            </div>
+                            <div class="step">
+                                <div class="step-num yellow">🟡</div>
+                                <div class="step-text"><b>Half-Open</b> — coba kirim sedikit</div>
+                            </div>
+                            <div class="step">
+                                <div class="step-num red">🔴</div>
+                                <div class="step-text"><b>Open</b> — stop request, return fallback</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== STUDI KASUS MOBILE BANKING =========== -->
+        <section class="slide" data-title="Studi Kasus Banking">
+            <div class="slide-content">
+                <span class="chapter">P9 · H</span>
+                <h1>Studi Kasus: Mobile Banking</h1>
+                <p class="lead">Mobile banking harus sangat reliable — berhubungan dengan uang dan transaksi.</p>
+                <div class="grid-2">
+                    <div class="card danger">
+                        <h3>⚠️ Risiko</h3>
+                        <ul>
+                            <li>Transaksi gagal</li>
+                            <li>Saldo tidak update</li>
+                            <li>Pembayaran ganda</li>
+                            <li>Server overload</li>
+                            <li>Response lambat</li>
+                        </ul>
+                    </div>
+                    <div class="card success">
+                        <h3>✅ Strategi FT</h3>
+                        <ul>
+                            <li>Redundancy server</li>
+                            <li>Database replication</li>
+                            <li>Idempotent retry</li>
+                            <li>Circuit breaker</li>
+                            <li>Graceful degradation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== STUDI KASUS FLASH SALE =========== -->
+        <section class="slide" data-title="Flash Sale">
+            <div class="slide-content">
+                <span class="chapter">P9 · I</span>
+                <h1>Studi Kasus: E-Commerce Flash Sale</h1>
+                <p class="lead">Saat flash sale, request meningkat drastis → overload, stok tidak sinkron, pembayaran gagal.</p>
+                <h3>Alur aman flash sale:</h3>
+                <div class="diagram-box">
+                    <div class="node client">User Checkout</div>
+                    <div class="arrow">→</div>
+                    <div class="node middleware">API Gateway</div>
+                    <div class="arrow">→</div>
+                    <div class="node middleware">Queue / Broker</div>
+                    <div class="arrow">→</div>
+                    <div class="node-stack">
+                        <div class="node service">Order Svc</div>
+                        <div class="node service">Payment Svc</div>
+                        <div class="node service">Inventory Svc</div>
+                    </div>
+                </div>
+                <div class="pill-grid mt">
+                    <span class="pill">Load Balancing</span>
+                    <span class="pill">Rate Limiting</span>
+                    <span class="pill">Queue-based</span>
+                    <span class="pill">Auto-scaling</span>
+                    <span class="pill">Cache layer</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== MICROSERVICES FT =========== -->
+        <section class="slide" data-title="Microservices FT">
+            <div class="slide-content">
+                <span class="chapter">P9 · J</span>
+                <h1>Fault Tolerance dalam Microservices</h1>
+                <p class="lead">Satu service gagal <b>tidak boleh</b> membuat seluruh sistem mati.</p>
+                <div class="grid-2">
+                    <div class="card sm">
+                        <h3>🎭 Graceful Degradation</h3>
+                        <p>Sistem tetap jalan meski sebagian fitur tidak tersedia. Contoh: Recommendation mati, tapi checkout tetap bisa.</p>
+                    </div>
+                    <div class="card sm">
+                        <h3>🔄 Fallback</h3>
+                        <p>Layanan alternatif ketika service utama gagal.</p>
+                    </div>
+                    <div class="card sm">
+                        <h3>🧱 Bulkhead</h3>
+                        <p>Batasi dampak kegagalan agar tidak merambat ke seluruh sistem.</p>
+                    </div>
+                    <div class="card sm">
+                        <h3>📊 Monitoring &amp; Alerting</h3>
+                        <p>Deteksi gangguan cepat, notifikasi tim saat anomali.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== KESIMPULAN P10 =========== -->
+        <section class="slide" data-title="Kesimpulan P9">
+            <div class="slide-content">
+                <span class="chapter">P9 · Kesimpulan</span>
+                <h1>Kesimpulan Fault Tolerance</h1>
+                <div class="quote-box">
+                    <p>"Dalam sistem terdistribusi, kegagalan bukan pengecualian. Kegagalan adalah sesuatu yang harus <b>diasumsikan sejak awal desain</b>."</p>
+                </div>
+                <ul class="check-list">
+                    <li>Fault tolerance = sistem tetap berjalan saat ada komponen gagal</li>
+                    <li>Teknik utama: redundancy, replication, failover, retry, circuit breaker</li>
+                    <li>Reliability ≠ Availability — keduanya penting</li>
+                    <li>Graceful degradation lebih baik daripada total failure</li>
+                    <li>Desain untuk kegagalan sejak awal (Design for Failure)</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- =========== TERIMA KASIH =========== -->
+        <section class="slide cover" data-title="Terima Kasih">
+            <div class="slide-content">
+                <div class="badge">End of Presentation</div>
+                <h1 class="cover-title">Terima Kasih</h1>
+                <h2 class="cover-subtitle">Ada pertanyaan?</h2>
+                <p class="cover-meta">Sistem Terdistribusi · Pertemuan 8 &amp; 9</p>
+                <div class="cover-footer">
+                    <div>
+                        <span class="label">Dosen</span>
+                        <span class="value">Lubna, M.Kom.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Navigation Controls -->
+    <div class="nav-controls">
+        <button class="nav-btn" id="prevBtn" aria-label="Previous slide">‹</button>
+        <span class="slide-counter" id="slideCounter">1 / 24</span>
+        <button class="nav-btn" id="nextBtn" aria-label="Next slide">›</button>
+    </div>
+
+    <div class="hint">
+        <span>← →</span> nav · <span>F</span> fullscreen · <span>P</span> print PDF · <span>Esc</span> overview
+    </div>
+
+    <div class="overview-grid" id="overviewGrid"></div>
+
+    <script>
+// ===== Slide Navigation Engine =====
+const slides = document.querySelectorAll('.slide');
+const counter = document.getElementById('slideCounter');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const overviewGrid = document.getElementById('overviewGrid');
+const totalSlides = slides.length;
+let currentSlide = 0;
+
+function showSlide(index) {
+    if (index < 0 || index >= totalSlides) return;
+    slides.forEach(s => s.classList.remove('active'));
+    slides[index].classList.add('active');
+    currentSlide = index;
+    counter.textContent = `${index + 1} / ${totalSlides}`;
+    prevBtn.disabled = index === 0;
+    nextBtn.disabled = index === totalSlides - 1;
+    // Update URL hash
+    history.replaceState(null, '', `#${index + 1}`);
+}
+
+function nextSlide() {
+    if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1);
+}
+
+function prevSlide() {
+    if (currentSlide > 0) showSlide(currentSlide - 1);
+}
+
+// ===== Keyboard Navigation =====
+document.addEventListener('keydown', (e) => {
+    // If overview is open
+    if (overviewGrid.classList.contains('active')) {
+        if (e.key === 'Escape') toggleOverview();
+        return;
+    }
+
+    switch (e.key) {
+        case 'ArrowRight':
+        case 'ArrowDown':
+        case ' ':
+            e.preventDefault();
+            nextSlide();
+            break;
+        case 'ArrowLeft':
+        case 'ArrowUp':
+            e.preventDefault();
+            prevSlide();
+            break;
+        case 'Home':
+            e.preventDefault();
+            showSlide(0);
+            break;
+        case 'End':
+            e.preventDefault();
+            showSlide(totalSlides - 1);
+            break;
+        case 'f':
+        case 'F':
+            toggleFullscreen();
+            break;
+        case 'p':
+        case 'P':
+            window.print();
+            break;
+        case 'Escape':
+            toggleOverview();
+            break;
+    }
+});
+
+// ===== Button Navigation =====
+prevBtn.addEventListener('click', prevSlide);
+nextBtn.addEventListener('click', nextSlide);
+
+// ===== Click Navigation (left/right halves) =====
+document.querySelector('.presentation').addEventListener('click', (e) => {
+    if (overviewGrid.classList.contains('active')) return;
+    if (e.target.closest('.nav-controls') || e.target.closest('a') || e.target.closest('button')) return;
+    const x = e.clientX / window.innerWidth;
+    if (x > 0.65) nextSlide();
+    else if (x < 0.35) prevSlide();
+});
+
+// ===== Touch/Swipe Navigation =====
+let touchStartX = 0;
+let touchStartY = 0;
+
+document.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+}, { passive: true });
+
+document.addEventListener('touchend', (e) => {
+    if (overviewGrid.classList.contains('active')) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+        if (dx < 0) nextSlide();
+        else prevSlide();
+    }
+}, { passive: true });
+
+// ===== Fullscreen =====
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+        document.exitFullscreen();
+    }
+}
+
+// ===== Overview Grid =====
+function toggleOverview() {
+    overviewGrid.classList.toggle('active');
+}
+
+function buildOverview() {
+    overviewGrid.innerHTML = '';
+    slides.forEach((slide, i) => {
+        const thumb = document.createElement('div');
+        thumb.className = 'overview-thumb';
+        const title = slide.getAttribute('data-title') || `Slide ${i + 1}`;
+        thumb.innerHTML = `
+            <span class="overview-thumb-num">${i + 1}</span>
+            <span class="overview-thumb-title">${title}</span>
+        `;
+        thumb.addEventListener('click', () => {
+            showSlide(i);
+            toggleOverview();
+        });
+        overviewGrid.appendChild(thumb);
+    });
+}
+
+// ===== Init =====
+function init() {
+    buildOverview();
+    // Check URL hash
+    const hash = parseInt(location.hash.replace('#', ''));
+    if (hash && hash >= 1 && hash <= totalSlides) {
+        showSlide(hash - 1);
+    } else {
+        showSlide(0);
+    }
+}
+
+init();
+
+    </script>
+</body>
+</html>
