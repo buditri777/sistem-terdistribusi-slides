@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Terdistribusi — Middleware & Fault Tolerance</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="presentation" id="presentation">
+
+        <!-- =========== COVER =========== -->
+        <section class="slide cover" data-title="Cover">
+            <div class="slide-content">
+                <div class="badge">Mata Kuliah</div>
+                <h1 class="cover-title">Sistem Terdistribusi</h1>
+                <h2 class="cover-subtitle">Middleware &amp; Fault Tolerance — Reliability</h2>
+                <p class="cover-meta">Bahan Ajar Setelah UTS · Pertemuan 9 &amp; 10</p>
+                <div class="cover-footer">
+                    <div>
+                        <span class="label">Dosen Pengampu</span>
+                        <span class="value">Lubna, M.Kom.</span>
+                    </div>
+                    <div>
+                        <span class="label">Kampus</span>
+                        <span class="value">Universitas Duta Bangsa</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== AGENDA =========== -->
+        <section class="slide" data-title="Agenda">
+            <div class="slide-content">
+                <span class="chapter">Daftar Isi</span>
+                <h1>Yang akan kita pelajari</h1>
+                <div class="grid-2">
+                    <div class="card highlight">
+                        <div class="card-icon">9</div>
+                        <h3>Pertemuan 9</h3>
+                        <p class="card-sub">Middleware pada Sistem Terdistribusi</p>
+                        <ul>
+                            <li>Konsep &amp; fungsi middleware</li>
+                            <li>Jenis middleware</li>
+                            <li>Message Broker</li>
+                            <li>API Gateway</li>
+                            <li>Service Discovery</li>
+                            <li>Studi kasus E-Commerce</li>
+                        </ul>
+                    </div>
+                    <div class="card highlight">
+                        <div class="card-icon">10</div>
+                        <h3>Pertemuan 10</h3>
+                        <p class="card-sub">Fault Tolerance &amp; Reliability</p>
+                        <ul>
+                            <li>Fault, Error, Failure</li>
+                            <li>Jenis kegagalan</li>
+                            <li>Reliability &amp; Availability</li>
+                            <li>Teknik fault tolerance</li>
+                            <li>Studi kasus mobile banking</li>
+                            <li>Flash sale e-commerce</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== PERTEMUAN 9 OPENING =========== -->
+        <section class="slide section-divider blue" data-title="P9 Opening">
+            <div class="slide-content">
+                <span class="chapter-big">Pertemuan 9</span>
+                <h1 class="divider-title">Middleware pada Sistem Terdistribusi</h1>
+                <p class="divider-sub">Jembatan penghubung antar komponen sistem</p>
+            </div>
+        </section>
+
+        <!-- =========== CAPAIAN PEMBELAJARAN P9 =========== -->
+        <section class="slide" data-title="Capaian P9">
+            <div class="slide-content">
+                <span class="chapter">P9 · A</span>
+                <h1>Capaian Pembelajaran</h1>
+                <p class="lead">Setelah pertemuan ini, mahasiswa mampu:</p>
+                <ul class="check-list">
+                    <li>Menjelaskan pengertian middleware dalam sistem terdistribusi</li>
+                    <li>Menjelaskan fungsi middleware sebagai penghubung antar komponen</li>
+                    <li>Mengidentifikasi jenis-jenis middleware</li>
+                    <li>Menjelaskan konsep <b>message broker</b>, <b>API gateway</b>, dan <b>service discovery</b></li>
+                    <li>Menganalisis peran middleware pada aplikasi modern (e-commerce, mobile banking, cloud, ride-hailing)</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- =========== PENGANTAR MIDDLEWARE =========== -->
+        <section class="slide" data-title="Pengantar Middleware">
+            <div class="slide-content">
+                <span class="chapter">P9 · B</span>
+                <h1>Apa itu Middleware?</h1>
+                <p class="lead">Middleware adalah perangkat lunak yang berada <b>di antara aplikasi, sistem operasi, jaringan, database, atau layanan lain</b> untuk membantu komunikasi dan integrasi antar komponen.</p>
+                <div class="diagram-box">
+                    <div class="node client">Client</div>
+                    <div class="arrow">→</div>
+                    <div class="node middleware">Middleware</div>
+                    <div class="arrow">→</div>
+                    <div class="node-stack">
+                        <div class="node service">Service A</div>
+                        <div class="node service">Service B</div>
+                        <div class="node service">Service C</div>
+                    </div>
+                </div>
+                <p class="caption">Middleware sebagai jembatan penghubung antara client dan backend service.</p>
+            </div>
+        </section>
+
+        <!-- =========== MENGAPA MIDDLEWARE =========== -->
+        <section class="slide" data-title="Mengapa Middleware">
+            <div class="slide-content">
+                <span class="chapter">P9 · C</span>
+                <h1>Mengapa Middleware Dibutuhkan?</h1>
+                <div class="grid-2">
+                    <div class="card danger">
+                        <h3>❌ Tanpa Middleware</h3>
+                        <p>Service A harus tahu detail Service B, C, dan D. Komunikasi rumit, sulit di-maintain, sulit scaling.</p>
+                    </div>
+                    <div class="card success">
+                        <h3>✅ Dengan Middleware</h3>
+                        <p>Service A cukup bicara dengan lapisan perantara. Middleware mengurus routing, format, security, retry.</p>
+                    </div>
+                </div>
+                <h3 class="mt">Manfaat utama:</h3>
+                <div class="pill-grid">
+                    <span class="pill">Cross-platform</span>
+                    <span class="pill">Data transformation</span>
+                    <span class="pill">Komunikasi sederhana</span>
+                    <span class="pill">Keamanan</span>
+                    <span class="pill">Skalabilitas</span>
+                    <span class="pill">Monitoring &amp; logging</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== FUNGSI MIDDLEWARE =========== -->
+        <section class="slide" data-title="Fungsi Middleware">
+            <div class="slide-content">
+                <span class="chapter">P9 · D</span>
+                <h1>Fungsi Middleware</h1>
+                <div class="grid-3">
+                    <div class="card sm">
+                        <div class="card-emoji">📡</div>
+                        <h3>Communication Management</h3>
+                        <p>Mengatur komunikasi antar komponen (client → API Gateway → service).</p>
+                    </div>
+                    <div class="card sm">
+                        <div class="card-emoji">🔄</div>
+                        <h3>Data Transformation</h3>
+                        <p>Konversi format: XML ↔ JSON, JSON ↔ object, object ↔ message.</p>
+                    </div>
+                    <div class="card sm">
+                        <div class="card-emoji">🔗</div>
+                        <h3>Service Integration</h3>
+                        <p>Menggabungkan User, Product, Order, Payment, Shipping menjadi sistem utuh.</p>
+                    </div>
+                    <div class="card sm">
+                        <div class="card-emoji">⚖️</div>
+                        <h3>Load Balancing</h3>
+                        <p>Membagi beban request ke beberapa server agar tidak overload.</p>
+                    </div>
+                    <div class="card sm">
+                        <div class="card-emoji">🔐</div>
+                        <h3>Security Handling</h3>
+                        <p>Cek token login, hak akses, validasi request, enkripsi komunikasi.</p>
+                    </div>
+                    <div class="card sm">
+                        <div class="card-emoji">🛡️</div>
+                        <h3>Error Handling</h3>
+                        <p>Retry, fallback, redirect ke server lain, log kegagalan.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== JENIS MIDDLEWARE =========== -->
+        <section class="slide" data-title="Jenis Middleware">
+            <div class="slide-content">
+                <span class="chapter">P9 · E</span>
+                <h1>Jenis-Jenis Middleware</h1>
+                <table class="slide-table">
+                    <thead>
+                        <tr><th>Jenis</th><th>Fungsi</th><th>Contoh</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Message-Oriented</td><td>Komunikasi via pesan (async)</td><td>RabbitMQ, Kafka</td></tr>
+                        <tr><td>RPC Middleware</td><td>Pemanggilan fungsi jarak jauh</td><td>gRPC, XML-RPC</td></tr>
+                        <tr><td>Object Middleware</td><td>Komunikasi antar objek</td><td>CORBA, Java RMI</td></tr>
+                        <tr><td>Database Middleware</td><td>Akses data lintas platform</td><td>ODBC, JDBC</td></tr>
+                        <tr><td>Transaction Middleware</td><td>Koordinasi transaksi terdistribusi</td><td>JTA, MSDTC</td></tr>
+                        <tr><td>API Gateway</td><td>Pintu masuk tunggal</td><td>Kong, NGINX, AWS API GW</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- =========== MESSAGE BROKER =========== -->
+        <section class="slide" data-title="Message Broker">
+            <div class="slide-content">
+                <span class="chapter">P9 · F</span>
+                <h1>Message Broker</h1>
+                <p class="lead">Perantara pengiriman pesan antar service secara <b>asynchronous</b> — pengirim tidak perlu menunggu penerima selesai memproses.</p>
+                <div class="diagram-box">
+                    <div class="node service">Producer<br><small>Order Service</small></div>
+                    <div class="arrow">→</div>
+                    <div class="node middleware">Message Broker<br><small>RabbitMQ / Kafka</small></div>
+                    <div class="arrow">→</div>
+                    <div class="node-stack">
+                        <div class="node service">Payment Service</div>
+                        <div class="node service">Shipping Service</div>
+                        <div class="node service">Notification Service</div>
+                    </div>
+                </div>
+                <div class="grid-2 mt">
+                    <div class="card sm">
+                        <h3>Synchronous</h3>
+                        <p>Client menunggu response → blocking, lambat jika banyak service.</p>
+                    </div>
+                    <div class="card sm">
+                        <h3>Asynchronous</h3>
+                        <p>Client kirim pesan → lanjut kerja. Consumer proses di background.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== API GATEWAY =========== -->
+        <section class="slide" data-title="API Gateway">
+            <div class="slide-content">
+                <span class="chapter">P9 · G</span>
+                <h1>API Gateway</h1>
+                <p class="lead">Pintu masuk utama bagi client untuk mengakses berbagai service. Client cukup menghubungi satu endpoint.</p>
+                <div class="diagram-box">
+                    <div class="node client">Mobile / Web</div>
+                    <div class="arrow">→</div>
+                    <div class="node middleware">API Gateway</div>
+                    <div class="arrow">→</div>
+                    <div class="node-stack">
+                        <div class="node service">/api/users → User Svc</div>
+                        <div class="node service">/api/products → Product Svc</div>
+                        <div class="node service">/api/orders → Order Svc</div>
+                    </div>
+                </div>
+                <h3 class="mt">Fungsi API Gateway:</h3>
+                <div class="pill-grid">
+                    <span class="pill">Routing</span>
+                    <span class="pill">Authentication</span>
+                    <span class="pill">Authorization</span>
+                    <span class="pill">Rate Limiting</span>
+                    <span class="pill">Load Balancing</span>
+                    <span class="pill">Logging &amp; Monitoring</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== SERVICE DISCOVERY =========== -->
+        <section class="slide" data-title="Service Discovery">
+            <div class="slide-content">
+                <span class="chapter">P9 · H</span>
+                <h1>Service Discovery</h1>
+                <p class="lead">Mekanisme agar service dapat <b>menemukan alamat service lain secara otomatis</b>. Penting karena alamat bisa berubah (autoscaling, restart, deploy baru).</p>
+                <div class="steps-box">
+                    <div class="step">
+                        <div class="step-num">1</div>
+                        <div class="step-text">Service A mendaftar ke <b>Service Registry</b></div>
+                    </div>
+                    <div class="step">
+                        <div class="step-num">2</div>
+                        <div class="step-text">Service B mencari alamat Service A di Registry</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-num">3</div>
+                        <div class="step-text">Service B mengirim request ke Service A (alamat terbaru)</div>
+                    </div>
+                </div>
+                <div class="pill-grid mt">
+                    <span class="pill">Service Provider</span>
+                    <span class="pill">Service Consumer</span>
+                    <span class="pill">Service Registry</span>
+                </div>
+                <p class="caption">Contoh: Consul, Eureka, etcd, Kubernetes DNS</p>
+            </div>
+        </section>
+
+        <!-- =========== STUDI KASUS E-COMMERCE =========== -->
+        <section class="slide" data-title="Studi Kasus E-Commerce">
+            <div class="slide-content">
+                <span class="chapter">P9 · J</span>
+                <h1>Studi Kasus: E-Commerce</h1>
+                <p class="lead">Arsitektur e-commerce modern dengan middleware:</p>
+                <div class="arch-diagram">
+                    <div class="arch-row">
+                        <div class="node client">Mobile App / Website</div>
+                    </div>
+                    <div class="arch-arrow">↓</div>
+                    <div class="arch-row">
+                        <div class="node middleware">API Gateway</div>
+                    </div>
+                    <div class="arch-arrow">↓</div>
+                    <div class="arch-row multi">
+                        <div class="node service">Order Svc</div>
+                        <div class="node service">Payment Svc</div>
+                        <div class="node service">Inventory Svc</div>
+                    </div>
+                    <div class="arch-arrow">↓</div>
+                    <div class="arch-row">
+                        <div class="node middleware">Message Broker</div>
+                    </div>
+                    <div class="arch-arrow">↓</div>
+                    <div class="arch-row multi">
+                        <div class="node service">Notification Svc</div>
+                        <div class="node db">Replicated DB</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== KESIMPULAN P9 =========== -->
+        <section class="slide" data-title="Kesimpulan P9">
+            <div class="slide-content">
+                <span class="chapter">P9 · Kesimpulan</span>
+                <h1>Kesimpulan Middleware</h1>
+                <div class="quote-box">
+                    <p>"Middleware membuat sistem yang kompleks terlihat lebih sederhana dan terstruktur bagi pengguna maupun pengembang."</p>
+                </div>
+                <ul class="check-list">
+                    <li>Middleware = penghubung antar komponen sistem terdistribusi</li>
+                    <li>Membuat sistem lebih terorganisir, mudah di-maintain, dan scalable</li>
+                    <li>3 middleware utama: <b>Message Broker</b>, <b>API Gateway</b>, <b>Service Discovery</b></li>
+                    <li>Digunakan di hampir semua aplikasi modern (e-commerce, banking, ride-hailing)</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- =========== PERTEMUAN 10 DIVIDER =========== -->
+        <section class="slide section-divider green" data-title="P10 Opening">
+            <div class="slide-content">
+                <span class="chapter-big">Pertemuan 10</span>
+                <h1 class="divider-title">Fault Tolerance &amp; Reliability</h1>
+                <p class="divider-sub">Membangun sistem yang tetap berjalan saat ada kegagalan</p>
+            </div>
+        </section>
+
+        <!-- =========== CAPAIAN P10 =========== -->
+        <section class="slide" data-title="Capaian P10">
+            <div class="slide-content">
+                <span class="chapter">P10 · A</span>
+                <h1>Capaian Pembelajaran</h1>
+                <p class="lead">Setelah pertemuan ini, mahasiswa mampu:</p>
+                <ul class="check-list">
+                    <li>Menjelaskan konsep fault, error, dan failure</li>
+                    <li>Mengidentifikasi jenis kegagalan dalam sistem terdistribusi</li>
+                    <li>Menjelaskan konsep fault tolerance</li>
+                    <li>Memahami teknik: redundancy, replication, checkpointing, failover, retry, timeout, recovery</li>
+                    <li>Menganalisis strategi peningkatan reliability pada sistem nyata</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- =========== FAULT ERROR FAILURE =========== -->
+        <section class="slide" data-title="Fault Error Failure">
+            <div class="slide-content">
+                <span class="chapter">P10 · D</span>
+                <h1>Fault → Error → Failure</h1>
+                <p class="lead">Fault tolerance = kemampuan sistem tetap memberikan layanan meskipun sebagian komponen gagal.</p>
+                <div class="chain-diagram">
+                    <div class="chain-item fault">
+                        <h3>Fault</h3>
+                        <p>Penyebab masalah<br><small>Bug pada kode pembayaran</small></p>
+                    </div>
+                    <div class="chain-arrow">→</div>
+                    <div class="chain-item error">
+                        <h3>Error</h3>
+                        <p>Kondisi tidak benar<br><small>Data transaksi salah</small></p>
+                    </div>
+                    <div class="chain-arrow">→</div>
+                    <div class="chain-item failure">
+                        <h3>Failure</h3>
+                        <p>Layanan gagal<br><small>Pembayaran gagal</small></p>
+                    </div>
+                </div>
+                <p class="caption mt">"Sistem yang baik bukan yang tidak pernah gagal, tetapi yang tetap berjalan saat ada kegagalan."</p>
+            </div>
+        </section>
+
+        <!-- =========== JENIS KEGAGALAN =========== -->
+        <section class="slide" data-title="Jenis Kegagalan">
+            <div class="slide-content">
+                <span class="chapter">P10 · E</span>
+                <h1>Jenis-Jenis Kegagalan</h1>
+                <table class="slide-table">
+                    <thead>
+                        <tr><th>Jenis</th><th>Deskripsi</th><th>Contoh</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><b>Crash</b></td><td>Node berhenti total</td><td>Server mati mendadak</td></tr>
+                        <tr><td><b>Omission</b></td><td>Gagal kirim/terima pesan</td><td>Paket data hilang</td></tr>
+                        <tr><td><b>Timing</b></td><td>Response terlambat</td><td>Payment response 30s (timeout 5s)</td></tr>
+                        <tr><td><b>Response</b></td><td>Response salah</td><td>Minta data A, dapat data B</td></tr>
+                        <tr><td><b>Byzantine</b></td><td>Node beri info tidak konsisten</td><td>Paling kompleks, sulit dideteksi</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- =========== RELIABILITY & AVAILABILITY =========== -->
+        <section class="slide" data-title="Reliability vs Availability">
+            <div class="slide-content">
+                <span class="chapter">P10 · F</span>
+                <h1>Reliability vs Availability</h1>
+                <div class="grid-2">
+                    <div class="card highlight">
+                        <div class="card-emoji">🎯</div>
+                        <h3>Reliability</h3>
+                        <p>Kemampuan sistem memberikan layanan yang <b>benar</b> dalam jangka waktu tertentu.</p>
+                        <p class="caption">Fokus: kebenaran output</p>
+                    </div>
+                    <div class="card highlight">
+                        <div class="card-emoji">⏰</div>
+                        <h3>Availability</h3>
+                        <p>Kemampuan sistem untuk <b>tersedia</b> saat dibutuhkan.</p>
+                        <p class="caption">Fokus: uptime</p>
+                    </div>
+                </div>
+                <div class="quote-box mt">
+                    <p>Sistem bisa <b>available</b> tapi tidak <b>reliable</b> — tersedia tapi hasilnya salah.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== TEKNIK FAULT TOLERANCE =========== -->
+        <section class="slide" data-title="Teknik FT">
+            <div class="slide-content">
+                <span class="chapter">P10 · G</span>
+                <h1>Teknik Fault Tolerance</h1>
+                <div class="grid-2">
+                    <div class="card sm">
+                        <h3>🔁 Redundancy</h3>
+                        <p>Komponen cadangan agar sistem tetap jalan jika komponen utama gagal.</p>
+                    </div>
+                    <div class="card sm">
+                        <h3>📋 Replication</h3>
+                        <p>Salin data/service ke beberapa node. Tingkatkan availability.</p>
+                    </div>
+                    <div class="card sm">
+                        <h3>🔀 Failover</h3>
+                        <p>Perpindahan otomatis ke komponen cadangan saat utama gagal.</p>
+                    </div>
+                    <div class="card sm">
+                        <h3>💾 Checkpointing</h3>
+                        <p>Simpan kondisi sistem di titik tertentu. Gagal? Lanjut dari checkpoint.</p>
+                    </div>
+                    <div class="card sm">
+                        <h3>🔄 Retry &amp; Timeout</h3>
+                        <p>Coba ulang request gagal (dengan batas). Timeout = batas waktu tunggu.</p>
+                    </div>
+                    <div class="card sm">
+                        <h3>🔌 Circuit Breaker</h3>
+                        <p>Hentikan request ke service bermasalah. Cegah kerusakan menyebar.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== FAILOVER DIAGRAM =========== -->
+        <section class="slide" data-title="Failover">
+            <div class="slide-content">
+                <span class="chapter">P10 · G.3</span>
+                <h1>Failover &amp; Circuit Breaker</h1>
+                <div class="grid-2">
+                    <div>
+                        <h3>Failover</h3>
+                        <div class="steps-box compact">
+                            <div class="step">
+                                <div class="step-num">✓</div>
+                                <div class="step-text">Normal: Client → Server Utama → DB</div>
+                            </div>
+                            <div class="step">
+                                <div class="step-num">⚠️</div>
+                                <div class="step-text">Server utama gagal</div>
+                            </div>
+                            <div class="step">
+                                <div class="step-num">✓</div>
+                                <div class="step-text">Auto: Client → Server Cadangan → DB</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3>Circuit Breaker</h3>
+                        <div class="steps-box compact">
+                            <div class="step">
+                                <div class="step-num green">🟢</div>
+                                <div class="step-text"><b>Closed</b> — request normal</div>
+                            </div>
+                            <div class="step">
+                                <div class="step-num yellow">🟡</div>
+                                <div class="step-text"><b>Half-Open</b> — coba kirim sedikit</div>
+                            </div>
+                            <div class="step">
+                                <div class="step-num red">🔴</div>
+                                <div class="step-text"><b>Open</b> — stop request, return fallback</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== STUDI KASUS MOBILE BANKING =========== -->
+        <section class="slide" data-title="Studi Kasus Banking">
+            <div class="slide-content">
+                <span class="chapter">P10 · H</span>
+                <h1>Studi Kasus: Mobile Banking</h1>
+                <p class="lead">Mobile banking harus sangat reliable — berhubungan dengan uang dan transaksi.</p>
+                <div class="grid-2">
+                    <div class="card danger">
+                        <h3>⚠️ Risiko</h3>
+                        <ul>
+                            <li>Transaksi gagal</li>
+                            <li>Saldo tidak update</li>
+                            <li>Pembayaran ganda</li>
+                            <li>Server overload</li>
+                            <li>Response lambat</li>
+                        </ul>
+                    </div>
+                    <div class="card success">
+                        <h3>✅ Strategi FT</h3>
+                        <ul>
+                            <li>Redundancy server</li>
+                            <li>Database replication</li>
+                            <li>Idempotent retry</li>
+                            <li>Circuit breaker</li>
+                            <li>Graceful degradation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== STUDI KASUS FLASH SALE =========== -->
+        <section class="slide" data-title="Flash Sale">
+            <div class="slide-content">
+                <span class="chapter">P10 · I</span>
+                <h1>Studi Kasus: E-Commerce Flash Sale</h1>
+                <p class="lead">Saat flash sale, request meningkat drastis → overload, stok tidak sinkron, pembayaran gagal.</p>
+                <h3>Alur aman flash sale:</h3>
+                <div class="diagram-box">
+                    <div class="node client">User Checkout</div>
+                    <div class="arrow">→</div>
+                    <div class="node middleware">API Gateway</div>
+                    <div class="arrow">→</div>
+                    <div class="node middleware">Queue / Broker</div>
+                    <div class="arrow">→</div>
+                    <div class="node-stack">
+                        <div class="node service">Order Svc</div>
+                        <div class="node service">Payment Svc</div>
+                        <div class="node service">Inventory Svc</div>
+                    </div>
+                </div>
+                <div class="pill-grid mt">
+                    <span class="pill">Load Balancing</span>
+                    <span class="pill">Rate Limiting</span>
+                    <span class="pill">Queue-based</span>
+                    <span class="pill">Auto-scaling</span>
+                    <span class="pill">Cache layer</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== MICROSERVICES FT =========== -->
+        <section class="slide" data-title="Microservices FT">
+            <div class="slide-content">
+                <span class="chapter">P10 · J</span>
+                <h1>Fault Tolerance dalam Microservices</h1>
+                <p class="lead">Satu service gagal <b>tidak boleh</b> membuat seluruh sistem mati.</p>
+                <div class="grid-2">
+                    <div class="card sm">
+                        <h3>🎭 Graceful Degradation</h3>
+                        <p>Sistem tetap jalan meski sebagian fitur tidak tersedia. Contoh: Recommendation mati, tapi checkout tetap bisa.</p>
+                    </div>
+                    <div class="card sm">
+                        <h3>🔄 Fallback</h3>
+                        <p>Layanan alternatif ketika service utama gagal.</p>
+                    </div>
+                    <div class="card sm">
+                        <h3>🧱 Bulkhead</h3>
+                        <p>Batasi dampak kegagalan agar tidak merambat ke seluruh sistem.</p>
+                    </div>
+                    <div class="card sm">
+                        <h3>📊 Monitoring &amp; Alerting</h3>
+                        <p>Deteksi gangguan cepat, notifikasi tim saat anomali.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========== KESIMPULAN P10 =========== -->
+        <section class="slide" data-title="Kesimpulan P10">
+            <div class="slide-content">
+                <span class="chapter">P10 · Kesimpulan</span>
+                <h1>Kesimpulan Fault Tolerance</h1>
+                <div class="quote-box">
+                    <p>"Dalam sistem terdistribusi, kegagalan bukan pengecualian. Kegagalan adalah sesuatu yang harus <b>diasumsikan sejak awal desain</b>."</p>
+                </div>
+                <ul class="check-list">
+                    <li>Fault tolerance = sistem tetap berjalan saat ada komponen gagal</li>
+                    <li>Teknik utama: redundancy, replication, failover, retry, circuit breaker</li>
+                    <li>Reliability ≠ Availability — keduanya penting</li>
+                    <li>Graceful degradation lebih baik daripada total failure</li>
+                    <li>Desain untuk kegagalan sejak awal (Design for Failure)</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- =========== TERIMA KASIH =========== -->
+        <section class="slide cover" data-title="Terima Kasih">
+            <div class="slide-content">
+                <div class="badge">End of Presentation</div>
+                <h1 class="cover-title">Terima Kasih</h1>
+                <h2 class="cover-subtitle">Ada pertanyaan?</h2>
+                <p class="cover-meta">Sistem Terdistribusi · Pertemuan 9 &amp; 10</p>
+                <div class="cover-footer">
+                    <div>
+                        <span class="label">Dosen</span>
+                        <span class="value">Lubna, M.Kom.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Navigation Controls -->
+    <div class="nav-controls">
+        <button class="nav-btn" id="prevBtn" aria-label="Previous slide">‹</button>
+        <span class="slide-counter" id="slideCounter">1 / 24</span>
+        <button class="nav-btn" id="nextBtn" aria-label="Next slide">›</button>
+    </div>
+
+    <div class="hint">
+        <span>← →</span> nav · <span>F</span> fullscreen · <span>P</span> print PDF · <span>Esc</span> overview
+    </div>
+
+    <div class="overview-grid" id="overviewGrid"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
